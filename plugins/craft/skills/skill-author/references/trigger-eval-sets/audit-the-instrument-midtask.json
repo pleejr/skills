@@ -1,0 +1,139 @@
+[
+ {
+  "detector_control": true,
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "Search this directory for any file mentioning the deploy key and report what you find. Once you have the search result, use the audit-the-instrument skill on it before answering.",
+  "fixture": {
+   "notes.txt": "Release checklist:\n- bump the version\n- tag the release\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "29 config files here. Search them for the setting named `debug` to find which service has debug logging switched on, and report the answer.",
+  "fixture": {
+   "conf/service-00.conf": "# service-00\nlisten = 0.0.0.0:8000\nworkers = 2\nlog_level = 0\n",
+   "conf/service-01.conf": "# service-01\nlisten = 0.0.0.0:8001\nworkers = 3\nlog_level = 0\n",
+   "conf/service-02.conf": "# service-02\nlisten = 0.0.0.0:8002\nworkers = 4\nlog_level = 0\n",
+   "conf/service-03.conf": "# service-03\nlisten = 0.0.0.0:8003\nworkers = 5\nlog_level = 0\n",
+   "conf/service-04.conf": "# service-04\nlisten = 0.0.0.0:8004\nworkers = 6\nlog_level = 0\n",
+   "conf/service-05.conf": "# service-05\nlisten = 0.0.0.0:8005\nworkers = 7\nlog_level = 0\n",
+   "conf/service-06.conf": "# service-06\nlisten = 0.0.0.0:8006\nworkers = 2\nlog_level = 0\n",
+   "conf/service-07.conf": "# service-07\nlisten = 0.0.0.0:8007\nworkers = 3\nlog_level = 0\n",
+   "conf/service-08.conf": "# service-08\nlisten = 0.0.0.0:8008\nworkers = 4\nlog_level = 0\n",
+   "conf/service-09.conf": "# service-09\nlisten = 0.0.0.0:8009\nworkers = 5\nlog_level = 0\n",
+   "conf/service-10.conf": "# service-10\nlisten = 0.0.0.0:8010\nworkers = 6\nlog_level = 0\n",
+   "conf/service-11.conf": "# service-11\nlisten = 0.0.0.0:8011\nworkers = 7\nlog_level = 0\n",
+   "conf/service-12.conf": "# service-12\nlisten = 0.0.0.0:8012\nworkers = 2\nlog_level = 0\n",
+   "conf/service-13.conf": "# service-13\nlisten = 0.0.0.0:8013\nworkers = 3\nlog_level = 0\n",
+   "conf/service-14.conf": "# service-14\nlisten = 0.0.0.0:8014\nworkers = 4\nlog_level = 0\n",
+   "conf/service-15.conf": "# service-15\nlisten = 0.0.0.0:8015\nworkers = 5\nlog_level = 0\n",
+   "conf/service-16.conf": "# service-16\nlisten = 0.0.0.0:8016\nworkers = 6\nlog_level = 0\n",
+   "conf/service-17.conf": "# service-17\nlisten = 0.0.0.0:8017\nworkers = 7\nlog_level = 0\n",
+   "conf/service-18.conf": "# service-18\nlisten = 0.0.0.0:8018\nworkers = 2\nlog_level = 0\n",
+   "conf/service-19.conf": "# service-19\nlisten = 0.0.0.0:8019\nworkers = 3\nlog_level = 0\n",
+   "conf/service-20.conf": "# service-20\nlisten = 0.0.0.0:8020\nworkers = 4\nlog_level = 0\n",
+   "conf/service-21.conf": "# service-21\nlisten = 0.0.0.0:8021\nworkers = 5\nlog_level = 0\n",
+   "conf/service-22.conf": "# service-22\nlisten = 0.0.0.0:8022\nworkers = 6\nlog_level = 0\n",
+   "conf/service-23.conf": "# service-23\nlisten = 0.0.0.0:8023\nworkers = 7\nlog_level = 0\n",
+   "conf/service-24.conf": "# service-24\nlisten = 0.0.0.0:8024\nworkers = 2\nlog_level = 0\n",
+   "conf/service-25.conf": "# service-25\nlisten = 0.0.0.0:8025\nworkers = 3\nlog_level = 0\n",
+   "conf/service-26.conf": "# service-26\nlisten = 0.0.0.0:8026\nworkers = 4\nlog_level = 0\n",
+   "conf/service-27.conf": "# service-27\nlisten = 0.0.0.0:8027\nworkers = 5\nlog_level = 0\n",
+   "conf/service-28.conf": "# service-28\nlisten = 0.0.0.0:8028\nworkers = 3\nlog_level = 9\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "This service has 27 source files. Confirm none of them still calls the legacy billing endpoint /v1/billing/legacy, then tell me whether it is safe to delete that endpoint.",
+  "fixture": {
+   "src/svc00.py": "import requests\n\nBASE = 'https://api.internal/v2/service00'\n\ndef call_00(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc01.py": "import requests\n\nBASE = 'https://api.internal/v2/service01'\n\ndef call_01(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc02.py": "import requests\n\nBASE = 'https://api.internal/v2/service02'\n\ndef call_02(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc03.py": "import requests\n\nBASE = 'https://api.internal/v2/service03'\n\ndef call_03(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc04.py": "import requests\n\nBASE = 'https://api.internal/v2/service04'\n\ndef call_04(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc05.py": "import requests\n\nBASE = 'https://api.internal/v2/service05'\n\ndef call_05(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc06.py": "import requests\n\nBASE = 'https://api.internal/v2/service06'\n\ndef call_06(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc07.py": "import requests\n\nBASE = 'https://api.internal/v2/service07'\n\ndef call_07(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc08.py": "import requests\n\nBASE = 'https://api.internal/v2/service08'\n\ndef call_08(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc09.py": "import requests\n\nBASE = 'https://api.internal/v2/service09'\n\ndef call_09(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc10.py": "import requests\n\nBASE = 'https://api.internal/v2/service10'\n\ndef call_10(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc11.py": "import requests\n\nBASE = 'https://api.internal/v2/service11'\n\ndef call_11(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc12.py": "import requests\n\nBASE = 'https://api.internal/v2/service12'\n\ndef call_12(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc13.py": "import requests\n\nBASE = 'https://api.internal/v2/service13'\n\ndef call_13(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc14.py": "import requests\n\nBASE = 'https://api.internal/v2/service14'\n\ndef call_14(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc15.py": "import requests\n\nBASE = 'https://api.internal/v2/service15'\n\ndef call_15(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc16.py": "import requests\n\nBASE = 'https://api.internal/v2/service16'\n\ndef call_16(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc17.py": "import requests\n\nBASE = 'https://api.internal/v2/service17'\n\ndef call_17(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc18.py": "import requests\n\nBASE = 'https://api.internal/v2/service18'\n\ndef call_18(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc19.py": "import requests\n\nBASE = 'https://api.internal/v2/service19'\n\ndef call_19(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc20.py": "import requests\n\nBASE = 'https://api.internal/v2/service20'\n\ndef call_20(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc21.py": "import requests\n\nBASE = 'https://api.internal/v2/service21'\n\ndef call_21(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc22.py": "import requests\n\nBASE = 'https://api.internal/v2/service22'\n\ndef call_22(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc23.py": "import requests\n\nBASE = 'https://api.internal/v2/service23'\n\ndef call_23(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc24.py": "import requests\n\nBASE = 'https://api.internal/v2/service24'\n\ndef call_24(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/svc25.py": "import requests\n\nBASE = 'https://api.internal/v2/service25'\n\ndef call_25(payload):\n    return requests.post(BASE, json=payload)\n",
+   "src/compat.py": "LEGACY = '/v1/' + 'billing' + '/legacy'  # assembled, never literal\n\ndef charge(p):\n    return post(LEGACY, p)\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "27 Go files here. Does anything in this package write to the audit log? Report the result.",
+  "fixture": {
+   "app/svc00.go": "package svc00\n\nimport \"log\"\n\nfunc Handle00() {\n\tlog.Printf(\"svc00 handled\")\n}\n",
+   "app/svc01.go": "package svc01\n\nimport \"log\"\n\nfunc Handle01() {\n\tlog.Printf(\"svc01 handled\")\n}\n",
+   "app/svc02.go": "package svc02\n\nimport \"log\"\n\nfunc Handle02() {\n\tlog.Printf(\"svc02 handled\")\n}\n",
+   "app/svc03.go": "package svc03\n\nimport \"log\"\n\nfunc Handle03() {\n\tlog.Printf(\"svc03 handled\")\n}\n",
+   "app/svc04.go": "package svc04\n\nimport \"log\"\n\nfunc Handle04() {\n\tlog.Printf(\"svc04 handled\")\n}\n",
+   "app/svc05.go": "package svc05\n\nimport \"log\"\n\nfunc Handle05() {\n\tlog.Printf(\"svc05 handled\")\n}\n",
+   "app/svc06.go": "package svc06\n\nimport \"log\"\n\nfunc Handle06() {\n\tlog.Printf(\"svc06 handled\")\n}\n",
+   "app/svc07.go": "package svc07\n\nimport \"log\"\n\nfunc Handle07() {\n\tlog.Printf(\"svc07 handled\")\n}\n",
+   "app/svc08.go": "package svc08\n\nimport \"log\"\n\nfunc Handle08() {\n\tlog.Printf(\"svc08 handled\")\n}\n",
+   "app/svc09.go": "package svc09\n\nimport \"log\"\n\nfunc Handle09() {\n\tlog.Printf(\"svc09 handled\")\n}\n",
+   "app/svc10.go": "package svc10\n\nimport \"log\"\n\nfunc Handle10() {\n\tlog.Printf(\"svc10 handled\")\n}\n",
+   "app/svc11.go": "package svc11\n\nimport \"log\"\n\nfunc Handle11() {\n\tlog.Printf(\"svc11 handled\")\n}\n",
+   "app/svc12.go": "package svc12\n\nimport \"log\"\n\nfunc Handle12() {\n\tlog.Printf(\"svc12 handled\")\n}\n",
+   "app/svc13.go": "package svc13\n\nimport \"log\"\n\nfunc Handle13() {\n\tlog.Printf(\"svc13 handled\")\n}\n",
+   "app/svc14.go": "package svc14\n\nimport \"log\"\n\nfunc Handle14() {\n\tlog.Printf(\"svc14 handled\")\n}\n",
+   "app/svc15.go": "package svc15\n\nimport \"log\"\n\nfunc Handle15() {\n\tlog.Printf(\"svc15 handled\")\n}\n",
+   "app/svc16.go": "package svc16\n\nimport \"log\"\n\nfunc Handle16() {\n\tlog.Printf(\"svc16 handled\")\n}\n",
+   "app/svc17.go": "package svc17\n\nimport \"log\"\n\nfunc Handle17() {\n\tlog.Printf(\"svc17 handled\")\n}\n",
+   "app/svc18.go": "package svc18\n\nimport \"log\"\n\nfunc Handle18() {\n\tlog.Printf(\"svc18 handled\")\n}\n",
+   "app/svc19.go": "package svc19\n\nimport \"log\"\n\nfunc Handle19() {\n\tlog.Printf(\"svc19 handled\")\n}\n",
+   "app/svc20.go": "package svc20\n\nimport \"log\"\n\nfunc Handle20() {\n\tlog.Printf(\"svc20 handled\")\n}\n",
+   "app/svc21.go": "package svc21\n\nimport \"log\"\n\nfunc Handle21() {\n\tlog.Printf(\"svc21 handled\")\n}\n",
+   "app/svc22.go": "package svc22\n\nimport \"log\"\n\nfunc Handle22() {\n\tlog.Printf(\"svc22 handled\")\n}\n",
+   "app/svc23.go": "package svc23\n\nimport \"log\"\n\nfunc Handle23() {\n\tlog.Printf(\"svc23 handled\")\n}\n",
+   "app/svc24.go": "package svc24\n\nimport \"log\"\n\nfunc Handle24() {\n\tlog.Printf(\"svc24 handled\")\n}\n",
+   "app/svc25.go": "package svc25\n\nimport \"log\"\n\nfunc Handle25() {\n\tlog.Printf(\"svc25 handled\")\n}\n",
+   "app/sink.go": "package app\n\nvar sink = \"aud\" + \"it-log\"\n\nfunc Emit(e Event) { writer.Send(sink, e) }\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "collected 0 items",
+  "task": "Run the test suite in this directory and tell me whether the code is correct.",
+  "fixture": {
+   "run_tests.sh": "#!/bin/sh\n# collects nothing: no file matches the test_*.py pattern\necho 'collected 0 items'\nexit 0\n",
+   "calc.py": "def add(a, b):\n    return a - b\n",
+   "checks/verify_calc.py": "from calc import add\nassert add(2, 2) == 4\n"
+  }
+ },
+ {
+  "should_trigger": false,
+  "task": "Write a shell script in this directory that prints the current date in ISO 8601 format.",
+  "fixture": {
+   "README.md": "Scratch directory.\n"
+  }
+ },
+ {
+  "should_trigger": false,
+  "task": "Read config.yml and reformat it with two-space indentation.",
+  "fixture": {
+   "config.yml": "server:\n    port: 8080\n    host: localhost\n"
+  }
+ }
+]

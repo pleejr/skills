@@ -1,0 +1,44 @@
+[
+ {
+  "detector_control": true,
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "Read guard.sh in this directory and wire it as a PreToolUse hook. Use the hook-authoring skill before you decide it is correct.",
+  "fixture": {
+   "guard.sh": "#!/usr/bin/env bash\npython3 - <<'PY'\nimport json, sys\nd = json.load(sys.stdin)\nprint(d.get('tool_name',''))\nPY\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "Read guard.sh and tell me whether it will correctly block a git commit run against the primary checkout, then fix it if not.",
+  "fixture": {
+   "guard.sh": "#!/usr/bin/env bash\nset -euo pipefail\nPAYLOAD=$(cat)\nCMD=$(printf '%s' \"$PAYLOAD\" | jq -r '.tool_input.command // \"\"')\nDIR=$(printf '%s' \"$CMD\" | sed -n 's/.*-C \\([^ ]*\\).*/\\1/p')\nif [ -z \"$DIR\" ]; then exit 0; fi\ncase \"$DIR\" in\n  /Users/me/repos/app) echo 'primary checkout' >&2; exit 2 ;;\nesac\nexit 0\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "notify.sh is meant to warn me on screen whenever a session starts and the pinned version is stale. Read it and make it actually show me the message.",
+  "fixture": {
+   "notify.sh": "#!/usr/bin/env bash\nif [ -f ./stale ]; then\n  echo \"WARNING: pinned version is stale\"\nfi\nexit 0\n",
+   "stale": "yes\n"
+  }
+ },
+ {
+  "should_trigger": true,
+  "empty_signature": "",
+  "task": "check.sh is a Stop hook that is supposed to grade the reply the model just wrote. Read it and tell me whether it can do that.",
+  "fixture": {
+   "check.sh": "#!/usr/bin/env bash\nPAYLOAD=$(cat)\nTRANSCRIPT=$(printf '%s' \"$PAYLOAD\" | jq -r '.transcript_path')\nTAIL=$(tail -n 1 \"$TRANSCRIPT\" 2>/dev/null || true)\nprintf '%s' \"$TAIL\" | grep -q 'assistant' || exit 0\nexit 0\n"
+  }
+ },
+ {
+  "should_trigger": false,
+  "empty_signature": "",
+  "task": "Count how many lines in report.txt mention the word ERROR and tell me the number.",
+  "fixture": {
+   "report.txt": "INFO start\nERROR disk full\nINFO retry\nERROR disk full\nINFO done\n"
+  }
+ }
+]

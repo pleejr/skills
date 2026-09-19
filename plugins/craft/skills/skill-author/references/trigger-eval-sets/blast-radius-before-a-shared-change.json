@@ -1,0 +1,78 @@
+[
+  {
+    "query": "I'm about to add an optional task_efs_volumes input to our shared ecs-service module. Who does this actually reach?",
+    "should_trigger": true
+  },
+  {
+    "query": "It's an additive field so existing consumers are unaffected, right?",
+    "should_trigger": true
+  },
+  {
+    "query": "Before I cut v5.0.0 of terraform-aws-module-ecs-service — what breaks?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to add a new Trivy gate to the shared terraform workflow. How many repos pick that up?",
+    "should_trigger": true
+  },
+  {
+    "query": "How many call sites does terraform-aws-module-core actually have?",
+    "should_trigger": true
+  },
+  {
+    "query": "We're pausing seven extract DAGs for a credential swap. Anything downstream I should worry about?",
+    "should_trigger": true
+  },
+  {
+    "query": "Can I just grep for the module source string to find everyone who uses this module?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the blast radius of adding this field to the shared module?",
+    "should_trigger": true
+  },
+  {
+    "query": "Will this module fix reach production, or only qa?",
+    "should_trigger": true
+  },
+  {
+    "query": "Who consumes this reusable workflow, and are they pinned or on @main?",
+    "should_trigger": true
+  },
+  {
+    "query": "Is this change backwards compatible for everyone already calling the module?",
+    "should_trigger": true
+  },
+  {
+    "query": "The terraform plan says 3 to change and 1 to destroy. Is it safe to apply?",
+    "should_trigger": false
+  },
+  {
+    "query": "What permissions does this service account actually need? Narrow it down.",
+    "should_trigger": false
+  },
+  {
+    "query": "The apply went green but the flag still reads false. Is the change actually live?",
+    "should_trigger": false
+  },
+  {
+    "query": "Sort the variables in this variables.tf alphabetically.",
+    "should_trigger": false
+  },
+  {
+    "query": "The grep came back empty. Is that a real zero or a broken search?",
+    "should_trigger": false
+  },
+  {
+    "query": "403 after I added them to the group. Why can't they connect?",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a bash script that renames every .txt file in a directory to .md.",
+    "should_trigger": false
+  },
+  {
+    "query": "What is the capital of France?",
+    "should_trigger": false
+  }
+]

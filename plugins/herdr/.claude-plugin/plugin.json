@@ -1,0 +1,9 @@
+{
+  "name": "herdr",
+  "description": "Herdr integration: name the current space after the work in progress, and run named peer Claude Code sessions side by side. Resets the space name at session start.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}

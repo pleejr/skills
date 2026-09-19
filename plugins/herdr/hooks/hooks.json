@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/skills/herdr-name/scripts/herdr-name.sh session-start",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+[
+ {
+  "query": "The query came back empty. Is that a real zero or is something wrong with my query?",
+  "should_trigger": true
+ },
+ {
+  "query": "grep found nothing. Should I trust that?",
+  "should_trigger": true
+ },
+ {
+  "query": "The check says it passed but the system looks broken to me.",
+  "should_trigger": true
+ },
+ {
+  "query": "My watcher script reported success on its very first poll. That seems too fast.",
+  "should_trigger": true
+ },
+ {
+  "query": "Did that check actually run, or did it skip?",
+  "should_trigger": true
+ },
+ {
+  "query": "Zero results. Is that a real negative?",
+  "should_trigger": true
+ },
+ {
+  "query": "The script says it failed but the system looks fine. What did it actually measure?",
+  "should_trigger": true
+ },
+ {
+  "query": "Prove this test can actually fail before I trust it.",
+  "should_trigger": false
+ },
+ {
+  "query": "Review this code critically and find the flaws.",
+  "should_trigger": false
+ },
+ {
+  "query": "403 after I added them to the group. Why?",
+  "should_trigger": false
+ },
+ {
+  "query": "The terraform plan has more changes than I expected. Safe to apply?",
+  "should_trigger": false
+ },
+ {
+  "query": "This test is failing. Fix it.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a bash script that polls a URL until it returns 200.",
+  "should_trigger": false
+ },
+ {
+  "query": "What is the capital of France?",
+  "should_trigger": false
+ },
+ {
+  "query": "The sync ran and the check said everything was clean, but the updated file is right there on disk. Did that check run before or after the sync?",
+  "should_trigger": true
+ },
+ {
+  "query": "My prune step reports success every time and never removes anything. Which checkout is it even reading?",
+  "should_trigger": true
+ },
+ {
+  "query": "I searched the repo for the note I wrote last week and got nothing back. Is that real?",
+  "should_trigger": true
+ },
+ {
+  "query": "Reorder these two startup hooks so the slower one runs last.",
+  "should_trigger": false
+ },
+ {
+  "query": "The terraform apply came back green but the flag still reads false. Is this actually live?",
+  "should_trigger": false
+ },
+ {
+  "query": "I merged the pull request and the service still does the old thing.",
+  "should_trigger": false
+ },
+ {
+  "query": "It printed Login successful and nothing is arriving downstream. Did the change land?",
+  "should_trigger": false
+ },
+ {
+  "query": "This note says that security group is an orphan. Can I just delete it?",
+  "should_trigger": false
+ },
+ {
+  "query": "The project page says the migration is done. How old is that claim?",
+  "should_trigger": false
+ },
+ {
+  "query": "We measured this account's access on the 13th. Is it safe to act on that number now?",
+  "should_trigger": false
+ },
+ {
+  "query": "Our missing-patch count went from 143 to 155 after the installs ran. Did they make it worse?",
+  "should_trigger": true
+ },
+ {
+  "query": "The rebuilt image scans 195 findings against the old one's 5499. Is it safer?",
+  "should_trigger": true
+ }
+]

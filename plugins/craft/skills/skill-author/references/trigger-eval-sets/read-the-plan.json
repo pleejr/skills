@@ -1,0 +1,18 @@
+[
+ {"query": "The terraform plan came back with 4 changes and I only expected 2. Is this safe to apply?", "should_trigger": true},
+ {"query": "Should I hit confirm and apply on this terraform run?", "should_trigger": true},
+ {"query": "Why is module.tailnet_policy in this plan? Nothing I changed touches it.", "should_trigger": true},
+ {"query": "Check the blast radius of this plan before I apply it.", "should_trigger": true},
+ {"query": "Terraform says 1 to add, 3 to change. What is the third one?", "should_trigger": true},
+ {"query": "Is this plan actually a no-op?", "should_trigger": true},
+ {"query": "Read the plan for me and tell me if it's ok to go ahead.", "should_trigger": true},
+ {"query": "This plan wants to destroy something. What is it going to destroy?", "should_trigger": true},
+ {"query": "Is run-Bw7VfBcyJjxspMBS done applying yet?", "should_trigger": false},
+ {"query": "Did that merged infra change actually go live in TFC?", "should_trigger": false},
+ {"query": "Sort the variables in variables.tf alphabetically.", "should_trigger": false},
+ {"query": "Review this architecture design doc and poke holes in it.", "should_trigger": false},
+ {"query": "Why can't Nahuel connect to the QA database? He says permission denied.", "should_trigger": false},
+ {"query": "Write me a terraform module for an application load balancer.", "should_trigger": false},
+ {"query": "The grep came back empty. Is that a real absence or is my pattern broken?", "should_trigger": false},
+ {"query": "What is the capital of France?", "should_trigger": false}
+]

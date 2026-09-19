@@ -1,0 +1,9 @@
+{
+  "name": "machine-config",
+  "description": "Make a machine's Claude Code configuration recoverable: snapshot, restore, verify, and share preferences across machines through a config repo you control.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}

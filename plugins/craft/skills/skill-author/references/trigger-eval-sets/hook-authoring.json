@@ -1,0 +1,20 @@
+[
+  { "query": "Write a PreToolUse hook that blocks writes when I'm in the primary checkout instead of a worktree.", "should_trigger": true },
+  { "query": "I want something to run every time Claude finishes a turn. How do I set that up?", "should_trigger": true },
+  { "query": "My hook isn't firing. It's wired in settings.json but nothing happens.", "should_trigger": true },
+  { "query": "The hook exits 0 every time even on input it's supposed to block. What am I missing?", "should_trigger": true },
+  { "query": "My gate is denying a command in a directory it shouldn't care about. Here's the script.", "should_trigger": true },
+  { "query": "I need to widen this hook matcher to cover a few more commands. Anything I should watch for?", "should_trigger": true },
+  { "query": "Should this hook block the turn or just put the message in my context?", "should_trigger": true },
+  { "query": "What's actually in the JSON that arrives on a hook's stdin?", "should_trigger": true },
+  { "query": "Can a Stop hook read the reply Claude just wrote?", "should_trigger": true },
+  { "query": "I wrote a SessionEnd hook that calls claude -p to summarise the session. Sane?", "should_trigger": true },
+  { "query": "Prove this test can actually fail before I trust it.", "should_trigger": false },
+  { "query": "Allow npm commands without a permission prompt.", "should_trigger": false },
+  { "query": "Back up my Claude config so I can restore it on a new laptop.", "should_trigger": false },
+  { "query": "The grep came back empty. Is that a real zero?", "should_trigger": false },
+  { "query": "Should this be a skill or should it live in CLAUDE.md?", "should_trigger": false },
+  { "query": "Write a bash script that polls a URL until it returns 200.", "should_trigger": false },
+  { "query": "Review this Terraform module critically and find the flaws.", "should_trigger": false },
+  { "query": "What is the capital of France?", "should_trigger": false }
+]

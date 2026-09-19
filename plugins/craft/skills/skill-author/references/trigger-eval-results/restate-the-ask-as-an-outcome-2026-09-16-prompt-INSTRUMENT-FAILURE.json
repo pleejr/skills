@@ -1,0 +1,40 @@
+{
+ "instrument": "FAILURE",
+ "skill": "restate-the-ask-as-an-outcome",
+ "date": "2026-09-16",
+ "note": "Two candidate descriptions, both failed the positive control across 2 runs. Not shipped; promoted to an always-on CLAUDE.md bullet instead.",
+ "candidates": [
+  {
+   "id": "a",
+   "control_query": "Can you add app-react-native-fd to the Jenkins github key?",
+   "control_runs": [
+    false,
+    false
+   ]
+  },
+  {
+   "id": "b",
+   "control_query": "Please escalate this to someone with admin so they can see the dashboard.",
+   "control_runs": [
+    false,
+    false
+   ],
+   "shape": "named the imperative verbatim in Triggers and added 'Always run it on a request of the form ...'"
+  }
+ ],
+ "routing_probes": [
+  {
+   "query": "We have AWS admin everywhere, so why is Redshift telling me permission denied?",
+   "routed_to": "diagnose-denial"
+  },
+  {
+   "query": "Are you able to look at these surveys at the admin level? Olivia needs the results.",
+   "routed_to": null
+  },
+  {
+   "query": "Can you add app-react-native-fd to the Jenkins github key?",
+   "routed_to": null
+  }
+ ],
+ "finding": "Descriptions route interrogative prompts; this skill's whole population is imperative requests, which the model treats as work to do rather than a question to route."
+}

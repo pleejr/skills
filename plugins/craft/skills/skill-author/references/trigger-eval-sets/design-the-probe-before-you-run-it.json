@@ -1,0 +1,22 @@
+[
+  { "query": "I'm about to run a command to confirm the package hold took. How should I verify it?", "should_trigger": true },
+  { "query": "What's the best way to check that the failover actually works?", "should_trigger": true },
+  { "query": "I want to publish a breaching datapoint to prove this alarm fires. Is that a safe way to test it?", "should_trigger": true },
+  { "query": "Will running `snap refresh` tell me whether the package is held?", "should_trigger": true },
+  { "query": "What should the runbook tell people to run to confirm the tunnel is routing?", "should_trigger": true },
+  { "query": "I need to test whether rebooting this node drops traffic. How do I measure that?", "should_trigger": true },
+  { "query": "Design a probe that tells me whether this route is actually carrying traffic.", "should_trigger": true },
+  { "query": "I'm about to change what this metric counts. Anything I should do before I ship it?", "should_trigger": true },
+  { "query": "Is `nc -vz p17-3 22` a good check that Tailscale is routing?", "should_trigger": true },
+  { "query": "My automation waits for the host to go offline and then waits for it to come back. Will that work?", "should_trigger": true },
+  { "query": "The query came back empty. Is that a real zero or is something wrong with my query?", "should_trigger": false },
+  { "query": "grep found nothing. Should I trust that?", "should_trigger": false },
+  { "query": "Prove this test can actually fail before I trust it.", "should_trigger": false },
+  { "query": "The apply succeeded but nothing changed. Is this actually live?", "should_trigger": false },
+  { "query": "I merged it and it still does the old thing.", "should_trigger": false },
+  { "query": "403 after I added them to the group. Why?", "should_trigger": false },
+  { "query": "The terraform plan has more changes than I expected. Safe to apply?", "should_trigger": false },
+  { "query": "This test is failing. Fix it.", "should_trigger": false },
+  { "query": "Write a bash script that polls a URL until it returns 200.", "should_trigger": false },
+  { "query": "What is the capital of France?", "should_trigger": false }
+]

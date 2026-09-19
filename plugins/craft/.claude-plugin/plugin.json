@@ -1,0 +1,9 @@
+{
+  "name": "craft",
+  "description": "Reasoning and verification craft: audit a diagnostic, design a probe, verify a change is live, scrutinize an artifact, explain plainly, write paste-ready briefs, author hooks and skills.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}

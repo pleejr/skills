@@ -1,0 +1,171 @@
+{
+ "skill": "audit-the-instrument",
+ "description_source": "installed",
+ "mid_task_instrument": "OK (detector control routed)",
+ "mid_task": {
+  "summary": {
+   "total": 6,
+   "scored": 6,
+   "passed": 6,
+   "failed": 0,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "task": "29 config files here. Search them for the setting named `debug` to find which service has debug logging switched on, and report the answer.",
+    "should_trigger": true,
+    "outcomes": [
+     "controlled"
+    ],
+    "pass": true,
+    "note": "",
+    "evidence": [
+     {
+      "tools": [
+       "Grep",
+       "Bash",
+       "Grep",
+       "Read",
+       "Bash"
+      ],
+      "empty_at": 0,
+      "answer": "None of the 29 files have a setting literally named `debug` \u2014 grep confirms zero matches for that key. Each file uses `log_level` instead, and 28 of them are set to `log_level = 0` while **service-28** (`conf/service-28.conf`) is the outlier at `log_level = 9`.\n\nThat's almost certainly the \"debug logging\" switch in disguise \u2014 same field name across all files, one value standing out from an otherwi"
+     }
+    ],
+    "unscorable": 0,
+    "audited_rate": 1.0
+   },
+   {
+    "task": "This service has 27 source files. Confirm none of them still calls the legacy billing endpoint /v1/billing/legacy, then tell me whether it is safe to delete tha",
+    "should_trigger": true,
+    "outcomes": [
+     "controlled"
+    ],
+    "pass": true,
+    "note": "",
+    "evidence": [
+     {
+      "tools": [
+       "Bash",
+       "Bash",
+       "Grep",
+       "Grep",
+       "Grep",
+       "Read",
+       "Grep",
+       "Grep",
+       "Grep",
+       "Grep",
+       "Bash",
+       "Grep",
+       "Bash"
+      ],
+      "empty_at": 2,
+      "answer": "All 26 svc*.py files hit distinct `/v2/serviceNN` endpoints, unrelated to billing. None reference `compat`, `charge`, or `LEGACY`.\n\n**Verdict: not safe to delete yet.**\n\n- A plain literal grep for `/v1/billing/legacy` found nothing, but that's a false negative \u2014 `src/compat.py` deliberately assembles the path via string concatenation (`'/v1/' + 'billing' + '/legacy'`, comment: \"assembled, never li"
+     }
+    ],
+    "unscorable": 0,
+    "audited_rate": 1.0
+   },
+   {
+    "task": "27 Go files here. Does anything in this package write to the audit log? Report the result.",
+    "should_trigger": true,
+    "outcomes": [
+     "controlled"
+    ],
+    "pass": true,
+    "note": "",
+    "evidence": [
+     {
+      "tools": [
+       "Bash",
+       "Grep",
+       "Read",
+       "Grep",
+       "Grep",
+       "Grep",
+       "Grep",
+       "Grep",
+       "Bash",
+       "Bash"
+      ],
+      "empty_at": 1,
+      "answer": "No, effectively \u2014 with caveats worth knowing:\n\n- Only one file even mentions an audit log: `app/sink.go` defines `Emit(e Event) { writer.Send(sink, e) }`, where `sink = \"aud\" + \"it-log\"`. A plain `grep -i audit` finds **nothing** because the string is split across a concatenation (`\"aud\" + \"it-log\"`), so don't trust that search alone.\n- But `Emit` is never called from anywhere in the other 26 file"
+     }
+    ],
+    "unscorable": 0,
+    "audited_rate": 1.0
+   },
+   {
+    "task": "Run the test suite in this directory and tell me whether the code is correct.",
+    "should_trigger": true,
+    "outcomes": [
+     "controlled"
+    ],
+    "pass": true,
+    "note": "",
+    "evidence": [
+     {
+      "tools": [
+       "Bash",
+       "Read",
+       "Read",
+       "Bash",
+       "Read",
+       "Bash",
+       "Bash"
+      ],
+      "empty_at": 2,
+      "answer": "The code is **not correct**, and `run_tests.sh` is not a real test runner.\n\n- `run_tests.sh` only globs for `test_*.py`, finds nothing, and unconditionally prints `collected 0 items` / exits 0 \u2014 it never touches the actual test file, so its \"pass\" is meaningless.\n- The real test lives at `checks/verify_calc.py` and asserts `add(2, 2) == 4`.\n- `calc.py:2` implements `add` as `a - b` (subtraction, n"
+     }
+    ],
+    "unscorable": 0,
+    "audited_rate": 1.0
+   },
+   {
+    "task": "Write a shell script in this directory that prints the current date in ISO 8601 format.",
+    "should_trigger": false,
+    "outcomes": [
+     "no-empty-result"
+    ],
+    "pass": true,
+    "note": "scored on whether the skill was invoked at all, not on tool count",
+    "evidence": [
+     {
+      "tools": [
+       "Write",
+       "Bash"
+      ],
+      "empty_at": null,
+      "answer": "Created `print-date.sh` \u2014 prints the current UTC date/time in ISO 8601 format (`date -u +%Y-%m-%dT%H:%M:%SZ`). Verified working."
+     }
+    ],
+    "unscorable": 0,
+    "skill_called_rate": 0.0
+   },
+   {
+    "task": "Read config.yml and reformat it with two-space indentation.",
+    "should_trigger": false,
+    "outcomes": [
+     "no-empty-result"
+    ],
+    "pass": true,
+    "note": "scored on whether the skill was invoked at all, not on tool count",
+    "evidence": [
+     {
+      "tools": [
+       "Glob",
+       "Read",
+       "Write"
+      ],
+      "empty_at": null,
+      "answer": "Done \u2014 `config.yml` now uses two-space indentation."
+     }
+    ],
+    "unscorable": 0,
+    "skill_called_rate": 0.0
+   }
+  ],
+  "reading": "passed = the model routed to the skill OR ran a further probe after the empty result. `controlled` is a proxy reported with its tool sequence and answer \u2014 read them; a run that merely CLAIMS it verified scores bare."
+ }
+}

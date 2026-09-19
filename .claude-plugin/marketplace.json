@@ -1,0 +1,41 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "pleejr",
+  "description": "pleejr's Claude Code plugins: boundary-agnostic engineering skills grouped by family.",
+  "owner": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "plugins": [
+    {
+      "name": "craft",
+      "description": "Reasoning and verification craft skills, plus shared output styles.",
+      "source": "./plugins/craft",
+      "category": "development"
+    },
+    {
+      "name": "infra",
+      "description": "Terraform, access and credential judgment skills.",
+      "source": "./plugins/infra",
+      "category": "development"
+    },
+    {
+      "name": "acronyms",
+      "description": "Always-on acronym expansion mode with a UserPromptSubmit hook and a skip-list.",
+      "source": "./plugins/acronyms",
+      "category": "productivity"
+    },
+    {
+      "name": "herdr",
+      "description": "Herdr space naming and peer Claude Code sessions; resets the space name at session start.",
+      "source": "./plugins/herdr",
+      "category": "productivity"
+    },
+    {
+      "name": "machine-config",
+      "description": "Snapshot, restore and verify a machine's Claude Code config through a git repo you control; autosaves at session end and applies shared output styles at session start.",
+      "source": "./plugins/machine-config",
+      "category": "productivity"
+    }
+  ]
+}

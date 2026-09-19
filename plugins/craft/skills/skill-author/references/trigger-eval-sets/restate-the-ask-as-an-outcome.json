@@ -1,0 +1,18 @@
+[
+  { "query": "Can you add app-react-native-fd to the Jenkins github key?", "should_trigger": true },
+  { "query": "Are you able to look at these surveys at the admin level? Olivia needs the results.", "should_trigger": true },
+  { "query": "We have AWS admin everywhere, so why is Redshift telling me permission denied?", "should_trigger": true },
+  { "query": "Password reset for the devops@ account goes nowhere. Can you get into the vendor portal?", "should_trigger": true },
+  { "query": "Please escalate this to someone with admin so they can see the dashboard.", "should_trigger": true },
+  { "query": "For the SSH key you added on Jenkins, can you add permission for util-fastlane-match?", "should_trigger": true },
+  { "query": "Give the contractor access to the report a colleague built before they left.", "should_trigger": true },
+  { "query": "Our admin says he can't see the survey either. What now?", "should_trigger": true },
+  { "query": "403 after I added them to the group. Why?", "should_trigger": false },
+  { "query": "They authenticate fine and then the connection times out.", "should_trigger": false },
+  { "query": "Design a least-privilege IAM policy for this Lambda based on what it actually calls.", "should_trigger": false },
+  { "query": "File a ticket for this Slack thread.", "should_trigger": false },
+  { "query": "I found an API key in a build log. What do I do?", "should_trigger": false },
+  { "query": "The terraform plan has more changes than I expected. Safe to apply?", "should_trigger": false },
+  { "query": "Write a bash script that polls a URL until it returns 200.", "should_trigger": false },
+  { "query": "What is the capital of France?", "should_trigger": false }
+]

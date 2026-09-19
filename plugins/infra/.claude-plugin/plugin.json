@@ -1,0 +1,9 @@
+{
+  "name": "infra",
+  "description": "Infrastructure judgment: gate a Terraform plan, find a shared change's blast radius, settle what governs an attribute, sort Terraform safely, walk an access denial, bound a leaked credential, scope a grant from observed use.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}

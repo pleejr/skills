@@ -1,0 +1,22 @@
+[
+  { "query": "Will this apply revoke the Hex ingress rules on that security group?", "should_trigger": true },
+  { "query": "Why does this diff keep coming back every time we plan?", "should_trigger": true },
+  { "query": "I deleted the ingress blocks but the plan says no changes. Did that actually revoke the rules?", "should_trigger": true },
+  { "query": "This IAM user is in state but nothing declares it. Is that a pending destroy?", "should_trigger": true },
+  { "query": "What else writes the MaintenanceClass tag on these instances?", "should_trigger": true },
+  { "query": "I'm about to ship a cron that sets desired capacity on a fleet. Anything I should check first?", "should_trigger": true },
+  { "query": "Someone added a grant in the Tailscale console and it disappeared. Why?", "should_trigger": true },
+  { "query": "I want to build the cleanup inventory by grepping the .tf files. Is that enough?", "should_trigger": true },
+  { "query": "Is it safe to import this resource into Terraform?", "should_trigger": true },
+  { "query": "A routine provider bump wants to delete response_templates in every environment. Why?", "should_trigger": true },
+  { "query": "The terraform plan has more changes than I expected. Safe to apply?", "should_trigger": false },
+  { "query": "Is this plan safe to apply? Confirm and apply.", "should_trigger": false },
+  { "query": "I'm about to change a shared Terraform module. Who consumes it?", "should_trigger": false },
+  { "query": "Sort the variables in variables.tf.", "should_trigger": false },
+  { "query": "Is that TFC run finished yet?", "should_trigger": false },
+  { "query": "The apply succeeded but nothing changed. Is this actually live?", "should_trigger": false },
+  { "query": "The query came back empty. Is that a real zero or is something wrong with my query?", "should_trigger": false },
+  { "query": "403 after I added them to the group. Why?", "should_trigger": false },
+  { "query": "Write a bash script that polls a URL until it returns 200.", "should_trigger": false },
+  { "query": "What is the capital of France?", "should_trigger": false }
+]

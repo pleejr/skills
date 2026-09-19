@@ -1,0 +1,10 @@
+[
+ {"query": "The plan summary says 2 to change. Which two?", "should_trigger": true},
+ {"query": "Does this terraform run actually modify anything?", "should_trigger": true},
+ {"query": "What gets replaced if I run this?", "should_trigger": true},
+ {"query": "Walk me through what this plan will do to prod.", "should_trigger": true},
+ {"query": "Has run-abc123 finished yet?", "should_trigger": false},
+ {"query": "Tidy up the ordering in outputs.tf.", "should_trigger": false},
+ {"query": "Critique this runbook and tell me what's missing.", "should_trigger": false},
+ {"query": "Users are getting 403 from the API gateway after I updated the policy.", "should_trigger": false}
+]

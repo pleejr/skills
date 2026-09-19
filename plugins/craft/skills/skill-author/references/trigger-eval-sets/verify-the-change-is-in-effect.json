@@ -1,0 +1,66 @@
+[
+  {
+    "query": "The terraform apply succeeded but the flag still reads false. What's going on?",
+    "should_trigger": true
+  },
+  {
+    "query": "Is this actually live in prod, or just merged?",
+    "should_trigger": true
+  },
+  {
+    "query": "I merged the fix and it's still doing the old thing.",
+    "should_trigger": true
+  },
+  {
+    "query": "I bumped the shared workflow and reran the failed jobs. They failed identically. Is my fix wrong?",
+    "should_trigger": true
+  },
+  {
+    "query": "The access log flag says true but nothing is arriving in the bucket.",
+    "should_trigger": true
+  },
+  {
+    "query": "The apply went green. Can I call this ticket done?",
+    "should_trigger": true
+  },
+  {
+    "query": "Why is the old version still running after the deploy?",
+    "should_trigger": true
+  },
+  {
+    "query": "I changed the launch template and no instance picked it up.",
+    "should_trigger": true
+  },
+  {
+    "query": "The query came back empty. Is that a real zero or is something wrong with my query?",
+    "should_trigger": false
+  },
+  {
+    "query": "Is this plan safe to apply? It has more changes than I expected.",
+    "should_trigger": false
+  },
+  {
+    "query": "Is that TFC run still awaiting Confirm and Apply?",
+    "should_trigger": false
+  },
+  {
+    "query": "Prove this test can actually fail before I trust it.",
+    "should_trigger": false
+  },
+  {
+    "query": "403 after I added them to the group. Why can't they connect?",
+    "should_trigger": false
+  },
+  {
+    "query": "Sort the variables in this Terraform module.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a python script that parses this CSV and totals the third column.",
+    "should_trigger": false
+  },
+  {
+    "query": "What is the capital of France?",
+    "should_trigger": false
+  }
+]

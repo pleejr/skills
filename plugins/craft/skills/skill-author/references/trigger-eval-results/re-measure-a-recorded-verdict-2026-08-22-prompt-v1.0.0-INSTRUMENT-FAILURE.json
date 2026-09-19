@@ -1,0 +1,9 @@
+{
+ "instrument": "FAILURE",
+ "control_query": "This note says that security group is an orphan. Can I just delete it?",
+ "control_runs": [
+  false,
+  false
+ ],
+ "note": "control did not trigger \u2014 results would be meaningless"
+}

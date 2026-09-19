@@ -1,0 +1,199 @@
+{
+ "skill": "audit-the-instrument",
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 26,
+   "scored": 26,
+   "passed": 24,
+   "failed": 2,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "The query came back empty. Is that a real zero or is something wrong with my query?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "grep found nothing. Should I trust that?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The check says it passed but the system looks broken to me.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "My watcher script reported success on its very first poll. That seems too fast.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Did that check actually run, or did it skip?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Zero results. Is that a real negative?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The script says it failed but the system looks fine. What did it actually measure?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Prove this test can actually fail before I trust it.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Review this code critically and find the flaws.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "403 after I added them to the group. Why?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The terraform plan has more changes than I expected. Safe to apply?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "This test is failing. Fix it.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Write a bash script that polls a URL until it returns 200.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "What is the capital of France?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The sync ran and the check said everything was clean, but the updated file is right there on disk. Did that check run before or after the sync?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "My prune step reports success every time and never removes anything. Which checkout is it even reading?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "I searched the repo for the note I wrote last week and got nothing back. Is that real?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Reorder these two startup hooks so the slower one runs last.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 1,
+    "pass": true
+   },
+   {
+    "query": "The terraform apply came back green but the flag still reads false. Is this actually live?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "I merged the pull request and the service still does the old thing.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "It printed Login successful and nothing is arriving downstream. Did the change land?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "This note says that security group is an orphan. Can I just delete it?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The project page says the migration is done. How old is that claim?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "We measured this account's access on the 13th. Is it safe to act on that number now?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Our missing-patch count went from 143 to 155 after the installs ran. Did they make it worse?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "The rebuilt image scans 195 findings against the old one's 5499. Is it safer?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   }
+  ]
+ },
+ "note": "v1.9.0 adds section 6 (Two readings of one number) and description coverage for a moved count. The two delta items are INTERMITTENT: across 10 observations each they fired 3/10 (missing-patch) and 4/10 (rebuilt image), with individual 2-run samples returning 1.0, 0.5 and 0.0 for the same description. v1.8.0 was measured at 0/2 for both before the change. A third delta item \u2014 'That branch's lint had 31 findings, so this one will too' \u2014 was REMOVED from the set as out of scope: it is a prediction with no verdict yet, and this skill starts from a diagnostic that already RAN. Also fixes a regression this session introduced: 'did that check actually run' had been dropped from Triggers for room and measured 0.0; restored, now 1.0."
+}
