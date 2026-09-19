@@ -3,7 +3,6 @@ name: safe-tfsort
 description: This skill should be used when sorting Terraform variables/outputs with tfsort, or when updating a Terraform module's variables.tf/outputs.tf. Wraps tfsort to alphabetically sort variable/output blocks WITHOUT losing comments — tfsort >=0.7.1 silently drops standalone and commented-out blocks, so use this instead of bare tfsort. Triggers: "sort variables", "run tfsort", "tfsort the variables file", "sort the module variables".
 version: 1.0.1
 summary: Wraps `tfsort` to alphabetically sort Terraform `variable`/`output` blocks without ever dropping comments or commented-out blocks (bare tfsort ≥0.7.1 silently loses them).
-tags: [infra, terraform]
 ---
 
 # safe-tfsort

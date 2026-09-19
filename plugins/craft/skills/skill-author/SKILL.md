@@ -3,7 +3,6 @@ name: skill-author
 description: This skill should be used when authoring or maintaining a Claude Code skill in this repo — writing a new SKILL.md, refining a skill's description so it triggers reliably, or diagnosing why a skill under- or over-triggers. It encodes this repo's house conventions (frontmatter shape, the explicit `Triggers:` line, the disambiguation clause) and treats the description as the routing surface that determines contextual invocation. Delegates the rigorous eval / benchmark / description-optimization loop to Anthropic's bundled `skill-creator`. Triggers: "write a skill", "create a skill", "add a new skill", "turn this into a skill", "improve this skill's description", "why isn't my skill triggering", "this skill fires when it shouldn't", "make this skill trigger reliably", "review this SKILL.md". Distinct from `scrutinize` (general artifact critique) — this is specifically about skill construction and trigger design.
 version: 1.1.0
 summary: House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator.
-tags: [craft]
 ---
 
 # skill-author — write skills that trigger by judgement
@@ -46,20 +45,16 @@ Model examples already in this repo: `scrutinize` (rich `Triggers:` + a "distinc
 
 ```yaml
 ---
-name: <kebab-case>          # matches the skills/<name>/ directory exactly
+name: <kebab-case>          # matches the plugins/<plugin>/skills/<name>/ directory exactly
 description: <the §2 formula>
 version: 1.0.0              # semver; bump on meaningful change
 summary: <one sentence>     # feeds the auto-generated README table — keep it tight and factual
-tags: [<domain>, <topic>]   # inline-flow list; controlled vocab (see below)
 ---
 ```
 
 - `summary` is consumed by `bin/gen-readme-skills.sh` between the README sentinels — regenerate after any add/rename (§6).
 - Some older skills use `status: active` + `updated: <date>` instead of `version:`; either is accepted, but prefer `version:` for new skills.
-- **`tags`** drive selective install (`bin/link.sh --tags …`) and README grouping. Rules:
-  - Use **inline-flow** form `tags: [a, b]` on one line — the frontmatter parsers in `bin/` expect that, not a multi-line block list.
-  - The vocabulary is **controlled** by `bin/allowed-tags.txt` (the single source of truth); an unknown tag is rejected by `link.sh` and flagged by `gen-readme`. Don't invent tags inline — add them there first if a genuinely new facet is needed.
-  - Give every skill **exactly one domain** tag — `craft` (general, boundary-agnostic, zero-config), `infra` (devops/infrastructure), or `ops` (operational third-party integrations) — plus **zero or more topic** tags (`terraform`, `observability`, `networking`, `integration`, `access`). Domain is the coarse "who wants this" axis; topics refine it.
+- No `tags:`. The plugin a skill lives in is its grouping, for install and for the README; a machine that wants fewer skills enables fewer plugins.
 
 ## 4. Body conventions
 
@@ -73,18 +68,18 @@ tags: [<domain>, <topic>]   # inline-flow list; controlled vocab (see below)
 
 A new skill that shadows an existing description degrades *both*. Before committing:
 
-1. List current descriptions: `grep -rh "^description:" skills/*/SKILL.md`.
+1. List current descriptions: `grep -rh "^description:" plugins/*/skills/*/SKILL.md`.
 2. Ask: does any existing skill already claim these trigger phrases? If so, either fold the capability into that skill, or add a mutual disambiguation clause to both.
 3. Confirm the new skill's negatives explicitly cede the near-miss prompts to whoever owns them.
 
 ## 6. Repo integration
 
-- Skills live at `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per family, each listed in `.claude-plugin/marketplace.json`. A skill that ships a hook gets a plugin of its own, so enabling a family never adds a hook silently. During the migration `skills/<name>` is a compatibility symlink into the plugin, which keeps `bin/link.sh` and hand-wired hook paths working on machines not yet on plugins.
+- Skills live at `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per family, each listed in `.claude-plugin/marketplace.json`. A skill that ships a hook gets a plugin of its own, so enabling a family never adds a hook silently. Every skill in this repo ships in a plugin, including hook-free ones: a single symlinked holdout would keep a second delivery mechanism alive for the whole repo.
 - A hook goes in the plugin's `hooks/hooks.json` as `${CLAUDE_PLUGIN_ROOT}/skills/<name>/scripts/<file>`, never in `settings.json`. A script meant to be run by hand goes on the plugin's `bin/` as a symlink, which puts it on the Bash tool's `PATH` as a bare command.
 - **A script reachable through a symlink resolves its OWN FILE through the link before deriving any path from it.** `cd -P "$(dirname "${BASH_SOURCE[0]}")"` resolves only the directory, so invoked as `bin/<cmd>` it lands in `bin/` and every sibling path is wrong. Loop `readlink` on the file first (see `acronyms.sh`).
 - After adding/renaming/removing a skill, regenerate the README table: `bin/gen-readme-skills.sh` (writes between the `<!-- skills:start -->` / `:end -->` sentinels from each `summary`).
-- For live development, `bin/link.sh` symlinks `skills/<name>` into `~/.claude/skills/`; as a plugin, the marketplace manifest picks them up. Either mode — no per-skill wiring.
-- Reference bundled scripts as `scripts/<file>` relative to the skill directory. When a body must give an absolute path, prefer the plugin's bare `bin/` command; otherwise resolve through the install symlink — `$(readlink ~/.claude/skills/<name>)/scripts` — and never spell `~/.claude/skills/<name>` alone: a plugin install has no such link, and the checkout path differs per machine.
+- For live development, add the marketplace from your clone (`claude plugin marketplace add <skills clone>`): a directory marketplace runs its plugins in place, so an edit is live in the next session.
+- Reference bundled scripts as `scripts/<file>` relative to the skill directory. When a body must give an absolute path, prefer the plugin's bare `bin/` command, or `${CLAUDE_SKILL_DIR}/scripts/<file>`; never spell `~/.claude/skills/<name>`: a plugin install has no such directory, and the checkout path differs per machine.
 - Environment-specific values go in `~/.claude/skill-config.env` (`KEY=value`), resolved first-found-wins (flag → env → config). Secrets (tokens, webhooks) live in their own chmod-600 files, never in this repo or in `skill-config.env`.
 
 ## 7. Delegate the eval loop to skill-creator — measure with `scripts/trigger_eval.py`

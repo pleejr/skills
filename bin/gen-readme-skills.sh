@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # gen-readme-skills.sh — regenerate the Skills table in README.md by scanning
-# skills/*/SKILL.md frontmatter, so the table never drifts from the actual skills.
+# plugins/*/skills/*/SKILL.md frontmatter, so the table never drifts from the actual skills.
 # Ported from wiki-engine's gen-skills-index.sh. Deterministic (sorted by name);
 # don't hand-edit the table between the sentinels.
 #
-# Each row:  | [`<name>`](skills/<name>/SKILL.md) | <cell> |
+# One section per plugin, in marketplace.json order.
+# Each row:  | [`<name>`](plugins/<plugin>/skills/<name>/SKILL.md) | <cell> |
 # cell = frontmatter `summary`, falling back to the first sentence of `description`.
 # Handles plain scalars and folded/literal block scalars (`>-`, `|`, ...).
 #
@@ -22,7 +23,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILLS_DIR="$REPO_ROOT/skills"
+PLUGINS_DIR="$REPO_ROOT/plugins"
+MARKETPLACE="$REPO_ROOT/.claude-plugin/marketplace.json"
 README="$REPO_ROOT/README.md"
 
 MODE="write"
@@ -35,11 +37,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-[ -d "$SKILLS_DIR" ] || { echo "error: no skills dir at $SKILLS_DIR" >&2; exit 1; }
+[ -d "$PLUGINS_DIR" ] || { echo "error: no plugins dir at $PLUGINS_DIR" >&2; exit 1; }
+[ -f "$MARKETPLACE" ] || { echo "error: no marketplace at $MARKETPLACE" >&2; exit 1; }
 
-# --- one TSV record (name<TAB>cell<TAB>tags) per skill, sorted by name -----------
+# --- one TSV record (name<TAB>cell) per skill of plugin $1, sorted by name ---------
 gen_rows() {
-  for f in "$SKILLS_DIR"/*/SKILL.md; do
+  for f in "$PLUGINS_DIR/$1"/skills/*/SKILL.md; do
     [ -f "$f" ] || continue
     awk '
       function stripq(s){ if (s ~ /^".*"$/) { sub(/^"/,"",s); sub(/"$/,"",s) } return s }
@@ -65,51 +68,35 @@ gen_rows() {
       END {
         name=fm["name"]; if (name=="") exit
         cell=fm["summary"]; if (cell=="") cell=first(fm["description"])
-        tags=fm["tags"]; gsub(/[][]/,"",tags); gsub(/,/," ",tags)
-        printf "%s\t%s\t%s\n", name, esc(cell), tags
+        printf "%s\t%s\n", name, esc(cell)
       }
     ' "$f"
   done | LC_ALL=C sort
 }
 
-ROWS="$(gen_rows)"   # TSV: name <TAB> cell <TAB> space-separated tags, sorted by name
-[ -n "$ROWS" ] || { echo "error: no skills parsed from $SKILLS_DIR" >&2; exit 1; }
-
-# Group the table by domain tag (in allowed-tags.txt order). Each skill carries exactly
-# one domain; any skill lacking a known domain lands in an "(untagged)" bucket so nothing
-# is ever dropped silently.
-ALLOWED_FILE="$REPO_ROOT/bin/allowed-tags.txt"
-[ -f "$ALLOWED_FILE" ] || { echo "error: no allowed-tags.txt at $ALLOWED_FILE" >&2; exit 1; }
-DOMAINS="$(awk '$2=="domain"{printf "%s ",$1}' "$ALLOWED_FILE")"   # space-separated
+# Plugins in marketplace order, read without jq: every `"name"` after the first (the
+# marketplace's own) inside the plugins array.
+PLUGINS="$(awk '/"plugins"[[:space:]]*:/{p=1} p && /"name"[[:space:]]*:/{v=$0; sub(/.*"name"[[:space:]]*:[[:space:]]*"/,"",v); sub(/".*/,"",v); print v}' "$MARKETPLACE")"
+[ -n "$PLUGINS" ] || { echo "error: no plugins listed in $MARKETPLACE" >&2; exit 1; }
 TAB="$(printf '\t')"
-
-print_rows() {   # stdin: TSV records -> markdown table rows
-  while IFS="$TAB" read -r n cell tags; do
-    [ -n "$n" ] || continue
-    printf '| [`%s`](skills/%s/SKILL.md) | %s |\n' "$n" "$n" "$cell"
-  done
-}
+COUNT=0
 
 build_block() {
-  for d in $DOMAINS; do
-    section="$(printf '%s\n' "$ROWS" | awk -F"$TAB" -v d="$d" '{m=split($3,t," "); for(i=1;i<=m;i++) if(t[i]==d){print;next}}')"
-    [ -n "$section" ] || continue
-    printf '### %s\n\n| Skill | What it does |\n|-------|--------------|\n' "$d"
-    printf '%s\n' "$section" | print_rows
+  local p rows
+  for p in $PLUGINS; do
+    rows="$(gen_rows "$p")"
+    [ -n "$rows" ] || continue
+    printf '### %s\n\n| Skill | What it does |\n|-------|--------------|\n' "$p"
+    printf '%s\n' "$rows" | while IFS="$TAB" read -r n cell; do
+      [ -n "$n" ] || continue
+      printf '| [`%s`](plugins/%s/skills/%s/SKILL.md) | %s |\n' "$n" "$p" "$n" "$cell"
+    done
     printf '\n'
   done
-  leftover="$(printf '%s\n' "$ROWS" | awk -F"$TAB" -v doms="$DOMAINS" '
-    BEGIN{n=split(doms,D," "); for(i=1;i<=n;i++) dom[D[i]]=1}
-    {has=0; m=split($3,t," "); for(i=1;i<=m;i++) if(t[i] in dom) has=1; if(!has) print}')"
-  if [ -n "$leftover" ]; then
-    printf '### (untagged)\n\n| Skill | What it does |\n|-------|--------------|\n'
-    printf '%s\n' "$leftover" | print_rows
-    printf '\n'
-  fi
 }
 
 BLOCK="$(build_block)"
-[ -n "$BLOCK" ] || { echo "error: no skills parsed from $SKILLS_DIR" >&2; exit 1; }
+[ -n "$BLOCK" ] || { echo "error: no skills parsed under $PLUGINS_DIR" >&2; exit 1; }
 
 if [ "$MODE" = "stdout" ]; then
   printf '%s\n' "$BLOCK"
@@ -146,4 +133,4 @@ if [ "$MODE" = "check" ]; then
 fi
 
 printf '%s\n' "$NEW" > "$README"
-echo "updated README skills table ($(printf '%s\n' "$ROWS" | wc -l | tr -d ' ') skills)"
+echo "updated README skills table ($(printf '%s\n' "$BLOCK" | grep -c '^| \[') skills)"

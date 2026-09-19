@@ -1,8 +1,8 @@
 # skills
 
-Reusable, boundary-agnostic Claude Code skills for engineering work — from general craft to infra and ops — importable into any wiki vault or dropped straight into `~/.claude/skills/`.
+Reusable, boundary-agnostic Claude Code skills for engineering work, shipped as Claude Code plugins.
 
-Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, grouped into family plugins (`craft`, `infra`, `acronyms`, `herdr`, `machine-config`) listed in the `pleejr` marketplace at `.claude-plugin/marketplace.json`. **The repo is mid-migration from symlinks to plugins** (vault page `plugin-migration`): `skills/<name>` is a compatibility symlink into each plugin, so the plain **symlink source** (`bin/link.sh`) keeps working until every machine has moved. Work-specific skills live in a separate, work-side marketplace, never here. `<skills clone>` throughout means wherever this repo is cloned; the path differs per machine, which is why no command here spells one. Every skill is **tagged** so a machine installs only the subset it needs — see [Tags & selective install](#tags--selective-install).
+Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per family, all listed in the `pleejr` marketplace at `.claude-plugin/marketplace.json`. A skill loads as `<plugin>:<name>` (`craft:scrutinize`). A machine that wants fewer skills enables fewer plugins. Work-specific skills live in a separate work-side marketplace, never here. `<skills clone>` means wherever this repo is cloned.
 
 ## Skills
 
@@ -12,66 +12,81 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, grouped into family
 
 | Skill | What it does |
 |-------|--------------|
-| [`audit-the-instrument`](skills/audit-the-instrument/SKILL.md) | Audit a diagnostic that already returned a verdict — did the harness run, did the input parse, what population did it cover, when and against which tree did it run, can the result discriminate — before that verdict is acted on. |
-| [`design-the-probe-before-you-run-it`](skills/design-the-probe-before-you-run-it/SKILL.md) | Classify a probe before running it — mutation, layer, observability, pollution, fallback, emittable positive, baseline — and name the control that makes its answer discriminating. |
-| [`eli5`](skills/eli5/SKILL.md) | Plain-language explanation with a load-bearing analogy — mechanism in one sentence, analogy mapped part-by-part, where it breaks down, and the real vocabulary — with guards against decorative analogies, jargon-swapping, and unflagged simplifications. |
-| [`expand-acronyms`](skills/expand-acronyms/SKILL.md) | Toggleable always-on mode that spells out every acronym on first use per reply, with a personal skip-list of already-known terms that can be added to mid-conversation; persists across compaction via an opt-in UserPromptSubmit hook. |
-| [`herdr-name`](skills/herdr-name/SKILL.md) | On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call. |
-| [`hook-authoring`](skills/hook-authoring/SKILL.md) | Author a Claude Code lifecycle hook that actually fires — capture a real payload and feed it on stdin, pick the event by what it can see, read the matcher as text, prove both the catch and the refusal, and route output by who can act on it. |
-| [`machine-config`](skills/machine-config/SKILL.md) | Make a machine's Claude Code config recoverable — autosaves ~/.claude to a git repo at session end, restores onto a replacement machine, and shares boundary-free preferences (output styles included) across machines from two stores, one of which crosses the work/personal boundary; secret-scanned, never spawns claude. |
-| [`paste-ready-brief`](skills/paste-ready-brief/SKILL.md) | Author a paste-ready message for a human thread at the length asked for — one-line tl;dr, short brief, or long form — fenced, unwrapped, with inferences marked and secrets withheld. |
-| [`peer-sessions`](skills/peer-sessions/SKILL.md) | Spawn a fleet of named interactive Claude Code sessions into herdr panes, gate readiness on the messaging socket, brief each peer over native SendMessage, harvest the work before it is lost, and hand back a teardown. |
-| [`probe-understanding`](skills/probe-understanding/SKILL.md) | Interactive teach-back drill — builds an evidence-sourced rubric, offers a lesson per sub-area that is by construction sufficient to score full marks, then asks closed-book questions one at a time and scores each sub-area 0-5 on mechanism, why, failure modes and boundaries with a citation behind every grade, looping hints then explanations into fresh rounds until the score is perfect or the operator stops. |
-| [`scrutinize`](skills/scrutinize/SKILL.md) | Rigorous critical review of any artifact (code, design, IaC, config, API, plan) — surfaces missed bugs, design flaws, anti-patterns, best-practice deviations, observability gaps, short-sightedness, security vulns, redundancy, and operational risk as ranked, evidence-backed findings. |
-| [`skill-author`](skills/skill-author/SKILL.md) | House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator. |
-| [`sync-skills`](skills/sync-skills/SKILL.md) | Converge this machine's installed skills — pull + relink to its tag subset, pick the set on first run, and resolve what session-start auto-sync refuses (dirty tree, divergence). The skills-side counterpart to the engine's `update`. |
-| [`verify-the-change-is-in-effect`](skills/verify-the-change-is-in-effect/SKILL.md) | Confirm an accepted change is actually in effect — read the value back from the running system rather than the acknowledgment, and name the deferral mechanism (maintenance window, unpromoted version, resolved workflow SHA, unloaded config, in-memory credential) that could be holding it. |
+| [`audit-the-instrument`](plugins/craft/skills/audit-the-instrument/SKILL.md) | Audit a diagnostic that already returned a verdict — did the harness run, did the input parse, what population did it cover, when and against which tree did it run, can the result discriminate — before that verdict is acted on. |
+| [`design-the-probe-before-you-run-it`](plugins/craft/skills/design-the-probe-before-you-run-it/SKILL.md) | Classify a probe before running it — mutation, layer, observability, pollution, fallback, emittable positive, baseline — and name the control that makes its answer discriminating. |
+| [`eli5`](plugins/craft/skills/eli5/SKILL.md) | Plain-language explanation with a load-bearing analogy — mechanism in one sentence, analogy mapped part-by-part, where it breaks down, and the real vocabulary — with guards against decorative analogies, jargon-swapping, and unflagged simplifications. |
+| [`hook-authoring`](plugins/craft/skills/hook-authoring/SKILL.md) | Author a Claude Code lifecycle hook that actually fires — capture a real payload and feed it on stdin, pick the event by what it can see, read the matcher as text, prove both the catch and the refusal, and route output by who can act on it. |
+| [`paste-ready-brief`](plugins/craft/skills/paste-ready-brief/SKILL.md) | Author a paste-ready message for a human thread at the length asked for — one-line tl;dr, short brief, or long form — fenced, unwrapped, with inferences marked and secrets withheld. |
+| [`probe-understanding`](plugins/craft/skills/probe-understanding/SKILL.md) | Interactive teach-back drill — builds an evidence-sourced rubric, offers a lesson per sub-area that is by construction sufficient to score full marks, then asks closed-book questions one at a time and scores each sub-area 0-5 on mechanism, why, failure modes and boundaries with a citation behind every grade, looping hints then explanations into fresh rounds until the score is perfect or the operator stops. |
+| [`scrutinize`](plugins/craft/skills/scrutinize/SKILL.md) | Rigorous critical review of any artifact (code, design, IaC, config, API, plan) — surfaces missed bugs, design flaws, anti-patterns, best-practice deviations, observability gaps, short-sightedness, security vulns, redundancy, and operational risk as ranked, evidence-backed findings. |
+| [`skill-author`](plugins/craft/skills/skill-author/SKILL.md) | House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator. |
+| [`verify-the-change-is-in-effect`](plugins/craft/skills/verify-the-change-is-in-effect/SKILL.md) | Confirm an accepted change is actually in effect — read the value back from the running system rather than the acknowledgment, and name the deferral mechanism (maintenance window, unpromoted version, resolved workflow SHA, unloaded config, in-memory credential) that could be holding it. |
 
 ### infra
 
 | Skill | What it does |
 |-------|--------------|
-| [`blast-radius-before-a-shared-change`](skills/blast-radius-before-a-shared-change/SKILL.md) | Enumerate the live consumers of a shared thing before changing it — sweep the resource type rather than the module source, count root-module instantiations per environment, ask what the feature's absence renders as, and check whether the pin floats. |
-| [`diagnose-denial`](skills/diagnose-denial/SKILL.md) | Walk an access path gate by gate when something is refused — identity, group/tag, network ACL, service ACL, host config, resource policy, in-service credential — and report which layer refused and which went unchecked. |
-| [`handle-a-found-credential`](skills/handle-a-found-credential/SKILL.md) | Bound the exposure when a live credential turns up where it should not be — enumerate at the identity, read the scopes as the blast radius, capture evidence before revoking, separate credential from standing, and redact by region so the report is not the second leak. |
-| [`read-the-plan-before-the-apply`](skills/read-the-plan-before-the-apply/SKILL.md) | Gate a Terraform apply by diffing the plan's resource addresses — and each update's before/after attributes — against an expectation stated before the plan was opened. Any unexplained address is disqualifying. |
-| [`safe-tfsort`](skills/safe-tfsort/SKILL.md) | Wraps `tfsort` to alphabetically sort Terraform `variable`/`output` blocks without ever dropping comments or commented-out blocks (bare tfsort ≥0.7.1 silently loses them). |
-| [`scope-a-grant-from-observed-use`](skills/scope-a-grant-from-observed-use/SKILL.md) | Derive a least-privilege grant from what a principal is observed to do — not from what it holds or what was requested — and name explicitly where the evidence of use is blind. |
-| [`settle-what-governs-an-attribute`](skills/settle-what-governs-an-attribute/SKILL.md) | Read config, state and live as three separate answers and enumerate every writer of a field before claiming what an apply will do to it. |
+| [`blast-radius-before-a-shared-change`](plugins/infra/skills/blast-radius-before-a-shared-change/SKILL.md) | Enumerate the live consumers of a shared thing before changing it — sweep the resource type rather than the module source, count root-module instantiations per environment, ask what the feature's absence renders as, and check whether the pin floats. |
+| [`diagnose-denial`](plugins/infra/skills/diagnose-denial/SKILL.md) | Walk an access path gate by gate when something is refused — identity, group/tag, network ACL, service ACL, host config, resource policy, in-service credential — and report which layer refused and which went unchecked. |
+| [`handle-a-found-credential`](plugins/infra/skills/handle-a-found-credential/SKILL.md) | Bound the exposure when a live credential turns up where it should not be — enumerate at the identity, read the scopes as the blast radius, capture evidence before revoking, separate credential from standing, and redact by region so the report is not the second leak. |
+| [`read-the-plan-before-the-apply`](plugins/infra/skills/read-the-plan-before-the-apply/SKILL.md) | Gate a Terraform apply by diffing the plan's resource addresses — and each update's before/after attributes — against an expectation stated before the plan was opened. Any unexplained address is disqualifying. |
+| [`safe-tfsort`](plugins/infra/skills/safe-tfsort/SKILL.md) | Wraps `tfsort` to alphabetically sort Terraform `variable`/`output` blocks without ever dropping comments or commented-out blocks (bare tfsort ≥0.7.1 silently loses them). |
+| [`scope-a-grant-from-observed-use`](plugins/infra/skills/scope-a-grant-from-observed-use/SKILL.md) | Derive a least-privilege grant from what a principal is observed to do — not from what it holds or what was requested — and name explicitly where the evidence of use is blind. |
+| [`settle-what-governs-an-attribute`](plugins/infra/skills/settle-what-governs-an-attribute/SKILL.md) | Read config, state and live as three separate answers and enumerate every writer of a field before claiming what an apply will do to it. |
+
+### acronyms
+
+| Skill | What it does |
+|-------|--------------|
+| [`expand-acronyms`](plugins/acronyms/skills/expand-acronyms/SKILL.md) | Toggleable always-on mode that spells out every acronym on first use per reply, with a personal skip-list of already-known terms that can be added to mid-conversation; persists across compaction via an opt-in UserPromptSubmit hook. |
+
+### herdr
+
+| Skill | What it does |
+|-------|--------------|
+| [`herdr-name`](plugins/herdr/skills/herdr-name/SKILL.md) | On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call. |
+| [`peer-sessions`](plugins/herdr/skills/peer-sessions/SKILL.md) | Spawn a fleet of named interactive Claude Code sessions into herdr panes, gate readiness on the messaging socket, brief each peer over native SendMessage, harvest the work before it is lost, and hand back a teardown. |
+
+### machine-config
+
+| Skill | What it does |
+|-------|--------------|
+| [`machine-config`](plugins/machine-config/skills/machine-config/SKILL.md) | Make a machine's Claude Code config recoverable — autosaves ~/.claude to a git repo at session end, restores onto a replacement machine, and shares boundary-free preferences (output styles included) across machines from two stores, one of which crosses the work/personal boundary; secret-scanned, never spawns claude. |
 <!-- skills:end -->
 
-## Tags & selective install
+## Install
 
-Every skill carries a `tags:` list in its `SKILL.md` frontmatter. Tags exist so a machine (or teammate) installs **only the skills it actually wants** — irrelevant skills otherwise sit in `~/.claude/skills/` and spend context on every session, since each installed skill's name + description loads at session start. Repo count doesn't save context; *installed-skill count* does, and tags are the knob.
+| Plugin | Carries | Hooks |
+|---|---|---|
+| `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
+| `infra` | Terraform, access and credential skills | — |
+| `acronyms` | expand-acronyms | UserPromptSubmit |
+| `herdr` | herdr-name, peer-sessions | SessionStart |
+| `machine-config` | machine-config | SessionStart, SessionEnd |
 
-The vocabulary is **controlled** — defined once in [`bin/allowed-tags.txt`](bin/allowed-tags.txt), and both `bin/link.sh` and `bin/gen-readme-skills.sh` reject anything outside it (no silent typos). It's a two-level scheme:
+A plugin that carries a hook wires it through its own `hooks/hooks.json`, so enabling the plugin is the wiring; nothing goes in `settings.json` by hand.
 
-- **Domain** (exactly one per skill) — the coarse "who wants this" axis:
-  - `craft` — general, boundary-agnostic engineering craft, zero config (e.g. `scrutinize`, `skill-author`)
-  - `infra` — infrastructure / devops (e.g. `safe-tfsort`, `read-the-plan-before-the-apply`)
-  - `ops` — operational third-party integrations (none in this repo; they live in a work-side marketplace)
-- **Topic** (zero or more) — finer facets: `terraform`, `observability`, `networking`, `integration`, `access`.
-
-Install a subset by passing `--tags` (comma-separated = union of matches):
+**Using the skills** — from GitHub, updated by Claude Code's own plugin refresh:
 
 ```sh
-./bin/link.sh                    # everything (default)
-./bin/link.sh --tags craft       # only the general-purpose craft skills
-./bin/link.sh --tags infra,ops   # all devops + operational skills, skip pure craft
-./bin/link.sh --tags terraform   # just the Terraform-specific ones
+claude plugin marketplace add pleejr/skills
+claude plugin install craft@pleejr --scope user     # repeat per plugin
 ```
 
-`--tags` is **additive and non-destructive**: it links the matching subset and never unlinks anything already present (the prune pass only removes *dangling* links). To slim an install down, delete the unwanted symlinks yourself, then re-run with just the tags you want.
+**Authoring them** — from your clone. A directory marketplace runs its plugins in place, so an edit is live in the next session and `git pull` is the update:
 
-Authoring a new skill or a new tag? See the [`skill-author`](skills/skill-author/SKILL.md) skill — it owns the frontmatter convention (inline-flow `tags: [a, b]`) and the rule that a new tag must be added to `allowed-tags.txt` first.
+```sh
+git clone https://github.com/pleejr/skills.git <skills clone>
+claude plugin marketplace add <skills clone>
+claude plugin install craft@pleejr --scope user
+```
 
 ## Local config (`skill-config.env`)
 
-Several skills need environment-specific values (your Atlassian site, TFC org, AMG hub
-ids, cloud environment id). To keep this repo strictly generic, those live **outside** it
-in `~/.claude/skill-config.env` (`KEY=value` lines; override the path with `$SKILL_CONFIG`).
-Each skill resolves first-found-wins: CLI flag → env var → `skill-config.env`. Secrets
-(API tokens, Slack webhooks) stay in their own chmod-600 files, never in this config.
+A skill that needs an environment-specific value (a site, an org, an id) reads it from
+`~/.claude/skill-config.env` (`KEY=value` lines; override the path with `$SKILL_CONFIG`),
+resolved first-found-wins: CLI flag → env var → `skill-config.env`. That keeps this repo
+generic. Secrets stay in their own chmod-600 files, never in this config.
 
 ## Shared output styles (`plugins/craft/output-styles/`)
 
@@ -99,95 +114,16 @@ refuses a style carrying a home path or credential-shaped content, but an employ
 a colleague's name or an internal system has no shape to match on. Read the prose before you
 commit it.
 
-## Two consumption modes
+## Moving a machine off the old symlink install
 
-**Symlinks were the original delivery; plugins replace them.** Both work during the migration, and `link.sh` stands down for any skill an enabled plugin provides, so one machine never loads a skill twice.
+Machines set up before the plugins linked skills into `~/.claude/skills/` with `bin/link.sh` and pulled at session start. Both are gone from this repo; the same steps apply on either boundary. Order matters where a legacy wiring refuses to change once its plugin is enabled.
 
-### 1. Live-development mode — symlink (recommended on machines where you author skills)
-
-```sh
-git clone git@github.com:pleejr/skills.git <skills clone>
-cd <skills clone>
-./bin/link.sh                 # symlink every skill into ~/.claude/skills/
-./bin/link.sh --tags craft    # …or just a subset — see "Tags & selective install"
-```
-
-Each skill appears to the Skill tool as `/<name>` (e.g. `/scrutinize`). Edits to the clone are **live immediately** (symlinks point at the working tree); `git push` / `pull` syncs across machines. Re-running `link.sh` after a rename/removal also **prunes** the stale symlinks this repo no longer backs.
-
-**Keeping a machine current** — one step, run on either dev machine:
-
-```sh
-./bin/sync.sh          # git pull --rebase --autostash, then ./bin/link.sh
-```
-
-`git pull` alone already updates edits to existing skills (they're symlinked live); `sync.sh` also reconciles the **add / rename / remove** cases via `link.sh` (new links created, stale ones pruned). Preferred over a git hook: `post-merge` doesn't fire on `git pull --rebase`, so a hook would miss this exact flow.
-
-### 2. Plugin mode — the `pleejr` marketplace
-
-`.claude-plugin/marketplace.json` lists one plugin per family. Skills load as `<plugin>:<name>` (`craft:scrutinize`); a plugin that carries a hook wires it through its own `hooks/hooks.json`, so enabling it is the wiring.
-
-| Plugin | Carries | Hooks |
-|---|---|---|
-| `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
-| `infra` | Terraform, access and credential skills | — |
-| `acronyms` | expand-acronyms | UserPromptSubmit |
-| `herdr` | herdr-name, peer-sessions | SessionStart |
-| `machine-config` | machine-config | SessionStart, SessionEnd |
-
-Add the marketplace **from a local clone**. The repo is private, and Claude Code's background plugin refresh disables git credential helpers, so a private GitHub marketplace never auto-updates. A directory marketplace runs its plugins in place: `git pull` in the clone is the update.
-
-```sh
-claude plugin marketplace add <skills clone>
-claude plugin install craft@pleejr --scope user     # repeat per plugin
-```
-
-Skills still in `skills/` as real directories belong to no plugin and stay on `link.sh`.
-
-### Moving a machine from symlinks to plugins
-
-The same on either boundary. Order matters where a legacy wiring refuses to change once its plugin is enabled.
-
-1. `git pull` the clone, then **unwire expand-acronyms first**, if this machine uses it: `<skills clone>/plugins/acronyms/skills/expand-acronyms/scripts/acronyms.sh unwire`. It refuses in plugin mode. Its mode and skip-list live in `~/.claude/skill-state` and carry over.
-2. Add the marketplace and install the plugins that cover the skills this machine links (see above).
-3. `./bin/link.sh --tags "$(tr -d '[:space:]' < ~/.claude/skill-tags)"` (plain `./bin/link.sh` on a machine with no `skill-tags`): it removes its own link for every skill an enabled plugin provides, and keeps linking the rest. The session-start sync runs the same command.
+1. **Unwire expand-acronyms first**, if the machine uses it: `<skills clone>/plugins/acronyms/skills/expand-acronyms/scripts/acronyms.sh unwire`. It refuses in plugin mode. Its mode and skip-list live in `~/.claude/skill-state` and carry over.
+2. Add the marketplace and install the plugins (see [Install](#install)).
+3. **Remove the old links and the sync:** every symlink in `~/.claude/skills/` pointing into the clone, `~/.claude/session-checks.d/pleejr-skills.sh`, and `~/.claude/skill-tags`.
 4. **Legacy hooks:** `plugins/machine-config/skills/machine-config/scripts/install.sh` removes machine-config's SessionEnd hook and both `session-checks.d` drop-ins (with the plugin enabled it unwires instead of wiring). Delete a `settings.json` SessionStart entry running `herdr-name.sh session-start` by hand.
 5. **Output styles:** `apply.sh --styles-only` (same directory) removes the copies it installed; rename `outputStyle` wherever it is set, from `Briefing` to `craft:Briefing`. A stale name falls back to the default style without a warning from Claude Code.
 6. **Restart, then check:** each `<plugin>:` skill is listed once, `/output-style` lists the `craft:` styles once, and `scripts/verify.sh` reports every enabled plugin's hooks healthy.
-
-## Adopting on a new machine
-
-Pick the domains that machine actually uses — this is the whole point of tags.
-
-```sh
-git clone git@github.com:pleejr/skills.git <skills clone>
-cd <skills clone>
-
-# a work/devops box — everything:
-./bin/link.sh
-
-# a personal laptop that never touches infra — just the general craft skills:
-./bin/link.sh --tags craft
-```
-
-> **Separate GitHub identities on this machine?** Clone via your personal SSH host alias instead — e.g. `git clone git@github-personal:pleejr/skills.git` — so commits here are authored under your personal identity automatically (a plain `git@github.com` clone on a work-keyed machine would carry your work identity). See your dotfiles / `~/.ssh/config` + `includeIf` setup.
-
-Then, for skills that need environment-specific values, create `~/.claude/skill-config.env` (see [Local config](#local-config-skill-configenv)). `craft`-only installs need none. Keep the machine current with `./bin/sync.sh`.
-
-## Migrating an existing install to the tag convention
-
-Machines that adopted before tags existed have every skill symlinked and **nothing breaks** — tags are additive metadata the harness ignores; `link.sh`/`sync.sh` keep working unchanged. Migrate only if you want to *slim a machine down* to a subset:
-
-```sh
-cd <skills clone>
-git pull                                   # get tags + the --tags-aware link.sh
-# remove just this repo's symlinks (only links pointing back into this clone), then relink the subset
-for l in ~/.claude/skills/*; do
-  [ -L "$l" ] && case "$(readlink "$l")" in "$PWD"/skills/*) rm "$l";; esac
-done
-./bin/link.sh --tags craft                 # e.g. personal laptop => craft only
-```
-
-`link.sh --tags` can't *remove* the skills you no longer want (it never unlinks), which is why the loop clears this repo's links first; it is scoped to symlinks pointing back into your clone, so it won't touch skills from other sources.
 
 ## Repo tooling
 

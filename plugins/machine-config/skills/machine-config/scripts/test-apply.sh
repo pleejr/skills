@@ -258,7 +258,7 @@ printf '%s' "$saout" | grep -q '\-\-force'; ck $? "session-apply: offers taking 
 printf '%s' "$saout" | grep -q 'Do not pick for the user'; ck $? "session-apply: refuses to choose between them"
 
 # session-check keeps its own half, and still reports it
-printf 'drifted\n' > "$CLAUDE_CONFIG_DIR/skill-tags"
+printf '{"drifted":true}\n' > "$CLAUDE_CONFIG_DIR/keybindings.json"
 sc
 printf '%s' "$scout" | sed -n 1p | grep -q 'snapshot stale'; ck $? "session-check: still reports snapshot drift"
 

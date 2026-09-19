@@ -3,7 +3,6 @@ name: herdr-name
 description: Name the current Herdr space after the work in progress — a 1-2 word domain label on the space itself, plus a 4-5 word topic line beneath it — so the sidebar says what each session is actually doing. On demand only, never per-turn: the naming comes from session context already in hand, so it costs one command and no summarizer. Also clears a name back to the space's original label. Triggers "/herdr-name", "name this space", "rename the space", "update the space name", "set the space topic", "what is this space called", "clear the space name", "restore the space name". Distinct from the bundled `herdr` skill (which controls panes, tabs, and agents to do work) — this only labels the current space for display. NOT for renaming tabs or panes, and NOT for creating or closing workspaces.
 version: 1.1.2
 summary: On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call.
-tags: [craft]
 ---
 
 # herdr-name

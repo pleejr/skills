@@ -11,10 +11,10 @@ Moved out of `SKILL.md` §7 on 2026-09-01. The verdict below was **measured 2026
 
 Either defect alone turns a good description into a 0% trigger rate, and the improvement loop then rewrites a description that already works. Do not run `run_loop.py` and act on its numbers.
 
-`scripts/trigger_eval.py` measures the skill as actually installed — user-level `~/.claude/skills/<name>/`, real name, detection on a `Skill` tool call naming it — and swaps a real directory in under the **same name** to score a candidate description, so only the description varies. It **refuses to report results at all** if its positive control does not trigger, printing `instrument: FAILURE` instead, because a harness that cannot detect a known-good case cannot score an unknown one.
+`scripts/trigger_eval.py` measures the skill as actually installed — a plugin skill as `--skill <plugin>:<name>`, read from the directory the session loads it from (the source tree for a directory marketplace, else the installed copy), or a user-level `~/.claude/skills/<name>/` by its bare name — real name, detection on a `Skill` tool call naming it — and swaps a real directory in under the **same name** to score a candidate description, so only the description varies. It **refuses to report results at all** if its positive control does not trigger, printing `instrument: FAILURE` instead, because a harness that cannot detect a known-good case cannot score an unknown one.
 
 ```bash
-python3 scripts/trigger_eval.py --skill <name> --eval-set references/trigger-eval-sets/<name>.json \
+python3 scripts/trigger_eval.py --skill <plugin>:<name> --eval-set references/trigger-eval-sets/<name>.json \
         --model sonnet --runs 2 --workers 6
 ```
 
