@@ -15,6 +15,33 @@ import argparse, json, os, pathlib, shutil, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 SKILLS = pathlib.Path(os.path.expanduser("~/.claude/skills"))
+PLUGINS = pathlib.Path(os.path.expanduser("~/.claude/plugins"))
+
+
+def resolve_live(skill: str) -> pathlib.Path:
+    """The directory the session actually loads <skill> from.
+
+    A bare name is a user-level skill in ~/.claude/skills/<name>. `plugin:name` is a
+    plugin skill: from a directory marketplace the session reads the source tree in
+    place, so that is where it lives; otherwise the installed copy. Scoring a copy the
+    session does not read would measure nothing.
+    """
+    if ":" not in skill:
+        return SKILLS / skill
+    plugin, name = skill.split(":", 1)
+    installed = json.loads((PLUGINS / "installed_plugins.json").read_text())["plugins"]
+    key = next((k for k in installed if k.startswith(plugin + "@")), None)
+    if key is None:
+        sys.exit(f"trigger_eval: plugin '{plugin}' is not installed")
+    market = key.split("@", 1)[1]
+    known = json.loads((PLUGINS / "known_marketplaces.json").read_text()).get(market, {})
+    src = known.get("source", {})
+    if src.get("source") == "directory":
+        root = pathlib.Path(src["path"])
+        manifest = json.loads((root / ".claude-plugin" / "marketplace.json").read_text())
+        entry = next(e for e in manifest["plugins"] if e["name"] == plugin)
+        return (root / entry["source"]).resolve() / "skills" / name
+    return pathlib.Path(installed[key][0]["installPath"]) / "skills" / name
 
 # Tools a mid-task fixture needs. Deliberately an allowlist and NOT a permission
 # bypass: `--permission-mode bypassPermissions` from a spawned claude is refused by
@@ -264,7 +291,7 @@ def evaluate(skill_name, eval_set, model, runs, workers, timeout, cwd):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--skill", required=True)
+    ap.add_argument("--skill", required=True, help="<plugin>:<name> for a plugin skill, or a bare user-level name")
     ap.add_argument("--eval-set")
     ap.add_argument("--mid-task-set", help="measure against mid-task context instead of user queries")
     ap.add_argument("--description", help="candidate description to score instead of the installed one")
@@ -284,7 +311,9 @@ def main():
     if control == "__auto__" and eval_set:
         control = next(i["query"] for i in eval_set if i["should_trigger"])
 
-    live = SKILLS / a.skill
+    live = resolve_live(a.skill)
+    if not (live / "SKILL.md").is_file():
+        sys.exit(f"trigger_eval: no SKILL.md at {live}")
     parked = None
     tmpdir = tempfile.mkdtemp(prefix="trigger-eval-")
     try:
@@ -294,7 +323,7 @@ def main():
             shutil.move(str(live), str(parked))
             live.mkdir(parents=True)
             (live / "SKILL.md").write_text(
-                f"---\nname: {a.skill}\ndescription: {a.description}\n---{body}")
+                f"---\nname: {a.skill.split(':')[-1]}\ndescription: {a.description}\n---{body}")
 
         cwd = tempfile.mkdtemp(prefix="trigger-eval-cwd-")
         out = {"skill": a.skill,

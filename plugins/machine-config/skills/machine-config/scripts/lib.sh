@@ -40,7 +40,7 @@ mc_host() { printf '%s\n' "${MACHINE_CONFIG_HOST:-$(hostname -s)}"; }
 
 # Config files worth carrying. Everything else under ~/.claude is state, not config —
 # conversation history, telemetry, caches — which is private, large, and pointless to restore.
-MC_FILES="settings.json CLAUDE.md skill-tags skill-sources keybindings.json skill-config.env"
+MC_FILES="settings.json CLAUDE.md skill-sources keybindings.json skill-config.env"
 
 # Directories under ~/.claude carried RECURSIVELY.
 #
@@ -157,7 +157,7 @@ mc_skills_store() {
 }
 
 # Is <plugin> enabled in user settings, from any marketplace? Read from the same file Claude
-# Code reads, the way bin/link.sh decides whether to stand down.
+# Code reads.
 mc_plugin_enabled() { # <plugin>
   grep -qE "\"$1@[^\"]+\"[[:space:]]*:[[:space:]]*true" "$(mc_cfg)/settings.json" 2>/dev/null
 }

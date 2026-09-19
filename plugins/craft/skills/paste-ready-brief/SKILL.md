@@ -3,7 +3,6 @@ name: paste-ready-brief
 description: This skill should be used when a finding, correction or status has to be handed to a colleague in a human thread — Slack, Jira, email, a pull-request comment — as a message the operator pastes, at exactly the length asked for: a one-sentence tl;dr, a 3–5 paragraph brief, or a full write-up. Produces one fenced block, unwrapped single-line paragraphs, dates and identifiers exact, inferences marked as inferences with the caveat that bounds them, secret values withheld, one ask at the end — and it is handed over, not sent. Triggers: "write me a tl;dr", "tl;dr for the team", "quick write-up for Slack", "write this up so I can paste it", "correct what they said", "what should I tell them", "put this in a paste-ready form", "summarise this for the channel". Distinct from a tool that posts or drafts inside the chat app itself (choosing the identity and the thread) — this one hands the operator text to paste, anywhere. Distinct from `eli5` (which explains a concept to someone lacking the background) — this reports a finding to a peer who has it. Distinct from a durable wiki page with its own conventions — this is a one-off message. NOT for the operator-facing report of your own turn, and NOT for sending — the message goes out only when the operator explicitly asks.
 version: 1.1.0
 summary: Author a paste-ready message for a human thread at the length asked for — one-line tl;dr, short brief, or long form — fenced, unwrapped, with inferences marked and secrets withheld.
-tags: [craft]
 ---
 
 # paste-ready-brief
