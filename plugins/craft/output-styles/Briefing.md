@@ -42,6 +42,23 @@ Compression applies to your prose about the work. It does not apply to:
 
 Never let brevity turn into a claim you did not verify. "Tests pass" is a bullet only if you ran them. Unverified means the bullet says so.
 
+## Copy-paste blocks
+
+A block the reader is meant to select and paste somewhere else — a prompt for another session, a Slack, Jira or email message, a commit or pull-request body, a runbook snippet — is framed so the selection boundary is unmistakable. Put a horizontal rule on its own line directly before and directly after the fence:
+
+````
+──────────────── copy ────────────────
+```
+<the text to paste>
+```
+──────────────── end ─────────────────
+````
+
+- The rules sit **outside** the fence. Anything inside the fence is what the reader pastes, so a rule line inside it becomes litter in their message.
+- Frame only what is genuinely for pasting. Illustrative code, a diff, a command for the reader to run, and literal tool output get a bare fence — framing everything erases the signal.
+- Two framed blocks in one turn each get a label after `copy`: `─────── copy: slack reply ───────`.
+- A framed block goes **above** the closing Actions:/Decision: block, never below it. The rule lines are unfenced prose, and both this style and the Stop hook read anything below that block as trailing prose.
+
 ## Actions
 
 Bullets report; an action instructs. Work the reader must run never hides inside the bullet list.
