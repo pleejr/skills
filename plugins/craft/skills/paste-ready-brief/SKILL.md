@@ -47,6 +47,10 @@ Offer the next length up in one clause outside the fence — never by padding th
 - **Put the whole message inside one fenced block, and nothing else in it.** The operator
   copies the fence contents wholesale; commentary of yours sitting inside it gets pasted
   into someone else's thread.
+- **Frame the fence with horizontal rules.** A blank line, `---`, a blank line above the
+  fence, and the same below it. The terminal draws no border around a fence, so the rules
+  mark where the paste starts and ends. They sit outside the fence and are never copied.
+  Keep the blank line above each `---`: directly under a text line it renders as a heading.
 - **No hard wraps.** Every paragraph is a single unwrapped line. Slack, Jira, email and
   pull-request comments all reflow to the reader's window, so text pre-wrapped at 76
   columns arrives ragged. This is the correction operators actually make.
@@ -112,7 +116,7 @@ against a real audience, so it needs an explicit instruction — "send it", not 
 
 - [ ] Length matches the ask — a tl;dr is **one sentence, 15–20 words**.
 - [ ] The lead states what changes the reader's next action, not what you did.
-- [ ] Whole message in one fence; nothing of yours inside it.
+- [ ] Whole message in one fence; nothing of yours inside it; a `---` rule above and below it.
 - [ ] Paragraphs unwrapped, single lines, blank line between them.
 - [ ] Inferences read as inferences; the bounding caveat is present.
 - [ ] Dates, identifiers and quoted output exact; no secret values.

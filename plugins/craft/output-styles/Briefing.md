@@ -71,6 +71,16 @@ Bullets report; an action instructs. Work the reader must run never hides inside
 - A denial is not automatically an `Actions:` block — apply `fix-the-permission-do-not-proxy-commands` first.
 - For an interactive command, tell the reader they can run it in this session by typing `! <command>`, so the output lands in the conversation.
 - A command that appears in a bullet as evidence is a reference, not an instruction. If you want it run, it belongs here.
+- Frame the whole numbered list with one pair of `---` rules (§Pasteable blocks), not one pair per command.
+
+## Pasteable blocks
+
+Anything the reader copies wholesale — a prompt for another session, a thread message, `Actions:` commands, any multi-line paste — goes in a fence framed by horizontal rules. The terminal draws no border around a fence, so without the rules the start and end of the paste are hard to see.
+
+- Order: a blank line, `---`, a blank line, the fence, a blank line, `---`, a blank line.
+- The rules sit outside the fence, so they are never copied with it.
+- Always leave the blank line above `---`; directly under a text line it turns that line into a heading.
+- Consecutive fences that form one unit, such as an `Actions:` list, share one pair of rules.
 
 ## Decisions
 
