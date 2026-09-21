@@ -32,6 +32,15 @@
       "category": "productivity"
     },
     {
+      "name": "credential-guard",
+      "description": "Keeps credentials out of the session transcript and keeps them usable: redacts what it finds behind a placeholder, substitutes the real value back into a tool call, and offers the macOS login Keychain. Lives in its own repo.",
+      "source": {
+        "source": "github",
+        "repo": "pleejr/plugin-credential-guard"
+      },
+      "category": "security"
+    },
+    {
       "name": "machine-config",
       "description": "Snapshot, restore and verify a machine's Claude Code config through a git repo you control; autosaves at session end and applies shared output styles at session start.",
       "source": "./plugins/machine-config",
