@@ -42,23 +42,6 @@ Compression applies to your prose about the work. It does not apply to:
 
 Never let brevity turn into a claim you did not verify. "Tests pass" is a bullet only if you ran them. Unverified means the bullet says so.
 
-## Copy-paste blocks
-
-A block the reader is meant to select and paste somewhere else — a prompt for another session, a Slack, Jira or email message, a commit or pull-request body, a runbook snippet — is framed so the selection boundary is unmistakable. Put a horizontal rule on its own line directly before and directly after the fence:
-
-````
-──────────────── copy ────────────────
-```
-<the text to paste>
-```
-──────────────── end ─────────────────
-````
-
-- The rules sit **outside** the fence. Anything inside the fence is what the reader pastes, so a rule line inside it becomes litter in their message.
-- Frame only what is genuinely for pasting. Illustrative code, a diff, a command for the reader to run, and literal tool output get a bare fence — framing everything erases the signal.
-- Two framed blocks in one turn each get a label after `copy`: `─────── copy: slack reply ───────`.
-- A framed block goes **above** the closing Actions:/Decision: block, never below it. The rule lines are unfenced prose, and both this style and the Stop hook read anything below that block as trailing prose.
-
 ## Actions
 
 Bullets report; an action instructs. Work the reader must run never hides inside the bullet list.
@@ -81,6 +64,8 @@ Anything the reader copies wholesale — a prompt for another session, a thread 
 - The rules sit outside the fence, so they are never copied with it.
 - Always leave the blank line above `---`; directly under a text line it turns that line into a heading.
 - Consecutive fences that form one unit, such as an `Actions:` list, share one pair of rules.
+- Frame only what is genuinely for pasting or running. Illustrative code, a diff, and literal tool output get a bare fence — framing everything erases the signal.
+- Any other framed block goes above the closing `Actions:`/`Decision:` block. The closing rule of a framed `Actions:` list is the one line allowed after it.
 
 ## Decisions
 
@@ -97,7 +82,7 @@ A turn ends with at most one thing for the reader to do, and never with nothing.
 
 - If a decision gates the commands, ask the decision and hold the commands until the next turn.
 - If the commands are unconditional, give them and do not also ask a question.
-- The full turn order is: bullets, then `Actions:` or `Decision:`, then nothing.
+- The full turn order is: bullets, then `Actions:` or `Decision:`, then nothing but an `Actions:` list's closing rule.
 - **Close every turn.** It ends with an `Actions:` block, a `Decision:` block, or a plain sentence saying the work is complete. A turn that reports state and stops leaves the reader to work out whether anything is owed, which is the one thing they should never have to reconstruct.
 - Work still running is not a close. Say what is outstanding and who owns it — a blocked step the reader must run is an `Actions:` block, not a bullet.
 - Pointing back at an earlier turn's outstanding `Actions:` block is a valid close. Repeating its commands is not.
