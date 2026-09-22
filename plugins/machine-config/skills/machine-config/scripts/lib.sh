@@ -51,8 +51,8 @@ MC_FILES="settings.json CLAUDE.md skill-sources keybindings.json skill-config.en
 #   skill-state   the mode files those hooks READ. Carrying the wiring without the state it
 #                 reads restores a hook that runs, finds nothing, and correctly treats
 #                 missing-as-off — so the mode is silently gone while every file it depends on
-#                 is present. Skills write their durable mode here for exactly that reason;
-#                 see the expand-acronyms skill.
+#                 is present. Skills write their durable mode here for exactly that reason
+#                 (the retired expand-acronyms mode was the case that taught it).
 #   output-styles the custom output styles that settings.json's `outputStyle` names. Same shape
 #                 of failure again: restore the setting without the Markdown file it points at
 #                 and the config references a style that is not on disk. These are hand-authored

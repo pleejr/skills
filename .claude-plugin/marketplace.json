@@ -20,12 +20,6 @@
       "category": "development"
     },
     {
-      "name": "acronyms",
-      "description": "Always-on acronym expansion mode with a UserPromptSubmit hook and a skip-list.",
-      "source": "./plugins/acronyms",
-      "category": "productivity"
-    },
-    {
       "name": "herdr",
       "description": "Herdr space naming and peer Claude Code sessions; resets the space name at session start.",
       "source": "./plugins/herdr",
