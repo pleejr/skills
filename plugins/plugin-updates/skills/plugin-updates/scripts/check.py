@@ -190,10 +190,18 @@ def main():
         st = state.get(mkt, {})
         stamp = float(st.get("stamp", 0))
         moved = any(epoch(rec.get("lastUpdated", "")) > stamp for _, rec in by_mkt[mkt])
-        if "--refresh" in sys.argv or now >= stamp + interval or moved:
+        # A marketplace whose source changed since its last lookup (a directory clone restored
+        # as its GitHub remote) has nothing cached under the new source; its stamp is the old
+        # source's, so waiting out the interval reported it "never looked up" for a day.
+        resourced = st.get("source") != src
+        if "--refresh" in sys.argv or now >= stamp + interval or moved or resourced:
             err = lookup(mkt, src, state)
+            state[mkt]["source"] = src
             if err:
                 failed[mkt] = err
+                state[mkt]["error"] = err  # sessions inside the interval repeat the real reason
+            else:
+                state[mkt].pop("error", None)
     current, outdated, notes, cmds, unchecked = 0, [], [], [], {}
     for mkt, plugins in sorted(by_mkt.items()):
         src = (known.get(mkt) or {}).get("source") or {}
@@ -205,7 +213,7 @@ def main():
             latest = (git("-C", repo, "rev-parse", "-q", "--verify", "refs/pu/latest") or "").strip() \
                 if os.path.isdir(repo) else ""
         if not latest:
-            unchecked[mkt] = failed.get(mkt) or "never looked up"
+            unchecked[mkt] = failed.get(mkt) or state.get(mkt, {}).get("error") or "never looked up"
             continue
         catalog = show_json(repo, latest, ".claude-plugin/marketplace.json") or {}
         entries = {p.get("name"): p for p in catalog.get("plugins", []) if isinstance(p, dict)}
