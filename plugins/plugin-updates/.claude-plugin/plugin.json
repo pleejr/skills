@@ -1,0 +1,9 @@
+{
+  "name": "plugin-updates",
+  "description": "Reports, at session start, every installed Claude Code plugin that is behind its marketplace's latest release, and offers to update them. Works with any marketplace; needs no other plugin.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}

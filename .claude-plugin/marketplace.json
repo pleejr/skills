@@ -45,6 +45,12 @@
       "description": "Snapshot, restore and verify a machine's Claude Code config through a git repo you control; autosaves at session end and applies shared output styles at session start.",
       "source": "./plugins/machine-config",
       "category": "productivity"
+    },
+    {
+      "name": "plugin-updates",
+      "description": "Session-start report of every installed plugin behind its marketplace's latest release, with an offer to update; works with any marketplace.",
+      "source": "./plugins/plugin-updates",
+      "category": "productivity"
     }
   ]
 }

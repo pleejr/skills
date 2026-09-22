@@ -52,6 +52,12 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | Skill | What it does |
 |-------|--------------|
 | [`machine-config`](plugins/machine-config/skills/machine-config/SKILL.md) | Make a machine's Claude Code config recoverable — autosaves ~/.claude to a git repo at session end, restores onto a replacement machine, and shares boundary-free preferences (output styles included) across machines from two stores, one of which crosses the work/personal boundary; secret-scanned, never spawns claude. |
+
+### plugin-updates
+
+| Skill | What it does |
+|-------|--------------|
+| [`plugin-updates`](plugins/plugin-updates/skills/plugin-updates/SKILL.md) | Session-start report of every installed plugin behind its marketplace's latest release — any marketplace, rate-limited lookup, self-clearing — with an offer to update and a reload instruction; never runs claude from the hook. |
 <!-- skills:end -->
 
 ## Install
@@ -63,6 +69,7 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | `acronyms` | expand-acronyms | UserPromptSubmit |
 | `herdr` | herdr-name, peer-sessions | SessionStart |
 | `machine-config` | machine-config | SessionStart, SessionEnd |
+| `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
 
 A plugin that carries a hook wires it through its own `hooks/hooks.json`, so enabling the plugin is the wiring; nothing goes in `settings.json` by hand.
 
