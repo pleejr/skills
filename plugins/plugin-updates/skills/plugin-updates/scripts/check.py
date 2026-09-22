@@ -122,6 +122,37 @@ def lookup(name, src, state):
     return None
 
 
+def external(ident, src, state, due):
+    """Latest release of a plugin whose catalog entry points at ANOTHER repo. The version lives
+    in that repo's plugin.json, not in the marketplace, so the marketplace lookup cannot answer
+    it — found live as `not checked: credential-guard@pleejr`. Mirrored and rate-limited exactly
+    like a marketplace. Returns (version_or_commit, None) or (None, reason)."""
+    url = remote_url(src)
+    if not url:
+        return None, f"source type {src.get('source')!r} is not checked"
+    mirror = os.path.join(DATA, "mirrors", "ext_" + safe(ident) + ".git")
+    if due:
+        st = state.setdefault("ext:" + ident, {})
+        st["stamp"] = time.time()
+        t = min(8.0, remaining())
+        if t <= 1:
+            return None, "out of time"
+        if not os.path.isdir(mirror):
+            os.makedirs(os.path.dirname(mirror), exist_ok=True)
+            if git("init", "-q", "--bare", mirror) is None:
+                return None, "could not create a mirror"
+        ref = src.get("ref") or "HEAD"
+        if git("-C", mirror, "fetch", "-q", "--no-tags", url, f"+{ref}:refs/pu/latest", timeout=t) is None:
+            return None, "lookup failed"
+    if not os.path.isdir(mirror):
+        return None, "never looked up"
+    head = (git("-C", mirror, "rev-parse", "-q", "--verify", "refs/pu/latest") or "").strip()
+    if not head:
+        return None, "never looked up"
+    manifest = show_json(mirror, head, ".claude-plugin/plugin.json") or {}
+    return str(manifest.get("version") or head[:12]), None
+
+
 def show_json(repo, rev, path):
     out = git("-C", repo, "show", f"{rev}:{path}")
     try:
@@ -163,13 +194,6 @@ def main():
             err = lookup(mkt, src, state)
             if err:
                 failed[mkt] = err
-    try:
-        os.makedirs(DATA, exist_ok=True)
-        with open(state_path, "w") as f:
-            json.dump(state, f)
-    except OSError:
-        pass
-
     current, outdated, notes, cmds, unchecked = 0, [], [], [], {}
     for mkt, plugins in sorted(by_mkt.items()):
         src = (known.get(mkt) or {}).get("source") or {}
@@ -220,8 +244,16 @@ def main():
                 if not ver and re.fullmatch(r"v?\d+(\.\d+)*([-+].*)?", ref):
                     ver = ref
                 if not ver:
-                    unchecked[ident] = "no version or release ref in its catalog entry"
-                    continue
+                    # The catalog names the repo and nothing else: ask that repo.
+                    st = state.get("ext:" + ident, {})
+                    stamp = float(st.get("stamp", 0))
+                    due = ("--refresh" in sys.argv or now >= stamp + interval
+                           or epoch(rec.get("lastUpdated", "")) > stamp)
+                    ver, why = external(ident, psrc, state, due)
+                    if not ver:
+                        unchecked[ident] = why
+                        continue
+                    inst = str(rec.get("version", ""))
                 ver = str(ver).lstrip("v")
                 new = None if ver == inst.lstrip("v") else ver
             else:
@@ -264,6 +296,13 @@ def main():
     else:
         banner = f"plugins: {current} current" + (f" (looked up {ago})" if ago else "") + skipped
         context = ""
+
+    try:
+        os.makedirs(DATA, exist_ok=True)
+        with open(state_path, "w") as f:
+            json.dump(state, f)
+    except OSError:
+        pass
 
     if hook:
         out = {"systemMessage": banner}
