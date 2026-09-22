@@ -146,6 +146,28 @@ out="$(PLUGIN_UPDATES_INTERVAL=0 run | msg)"
 if printf '%s' "$out" | grep -q 'not checked.*mk' && ! printf '%s' "$out" | grep -q 'plugins: [0-9]* current$'; then ck 0 "an unreachable marketplace is reported as not checked"; else ck 1 "unreachable read as current: $out"; fi
 mv "$GH.off" "$GH"
 
+# 7b — the reason survives the interval: the next session, still unreachable and inside the
+# interval, repeats why rather than claiming no lookup ever ran. Found live: pleejr-ww
+# read "never looked up" three hours after a lookup that failed.
+mv "$GH" "$GH.off"
+out="$(run | msg)"
+if printf '%s' "$out" | grep -q 'mk (lookup failed)'; then ck 0 "a failed lookup's reason is kept inside the interval"; else ck 1 "reason lost inside the interval: $out"; fi
+mv "$GH.off" "$GH"
+
+# 7c — a marketplace whose SOURCE changed is looked up at once, not after the interval.
+# machine-config restores a directory marketplace as its GitHub remote; the directory
+# lookup's stamp then held the new source's first fetch off for a day.
+publish "$D"
+PLUGIN_UPDATES_INTERVAL=0 run >/dev/null
+sed -i.bak 's|"dir":{"source":{"source":"directory","path":"[^"]*"}|"dir":{"source":{"source":"github","repo":"t/dir"}|' "$G/plugins/known_marketplaces.json"; rm -f "$G/plugins/known_marketplaces.json.bak"
+grep -q '"repo":"t/dir"' "$G/plugins/known_marketplaces.json" || { echo "  FAIL fixture: dir was not switched to github"; fail=1; }
+out="$(run | msg)"
+if ! printf '%s' "$out" | grep -q 'not checked.*dir'; then ck 0 "a marketplace whose source changed is looked up at once"; else ck 1 "re-sourced marketplace waited out the interval: $out"; fi
+# CONTROL: the same source inside the interval is still rate-limited — no lookup, same answer.
+git -C "$DATA/mirrors/dir.git" update-ref -d refs/pu/latest 2>/dev/null
+out="$(run | msg)"
+if printf '%s' "$out" | grep -q 'not checked.*dir'; then ck 0 "CONTROL: an unchanged source is not re-fetched inside the interval"; else ck 1 "fetched again inside the interval: $out"; fi
+
 # 8 — opt-out is silent and does no lookup; corrupt input never breaks the session.
 out="$(PLUGIN_UPDATES_CHECK=0 run)"; rc=$?
 if [ -z "$out" ] && [ "$rc" -eq 0 ]; then ck 0 "PLUGIN_UPDATES_CHECK=0 is silent"; else ck 1 "opt-out spoke: $out"; fi
