@@ -82,6 +82,16 @@ $(printf '%s\n' "$out" | head -4)"
     ;;
 esac
 
+# A directory marketplace on a restored or long-lived machine runs plugins from a working tree
+# no other machine sees. Report only; converting rewrites settings.json, which a session-start
+# check must not do.
+mk="$("$here/remote-marketplaces.sh" --check 2>/dev/null)"
+if [ $? -eq 1 ]; then
+  add_frag "configs: local marketplace"
+  add_note "NOTE — a plugin marketplace here loads from a local checkout rather than its remote:
+$(printf '%s\n' "$mk" | grep -- '->')
+Offer to run the machine-config skill's scripts/remote-marketplaces.sh (sets autoUpdate too), then \`claude plugin marketplace update <name>\`. Set MC_KEEP_DIRECTORY_MARKETPLACES=1 to keep it local on purpose."
+fi
 # Shared-preference drift — the SETTINGS half only. The styles half is no longer reported
 # here: zz-machine-config-apply.sh installs styles outright, and it is ordered to run AFTER
 # this machine's store sync, which this drop-in is not. Reporting them from here as well

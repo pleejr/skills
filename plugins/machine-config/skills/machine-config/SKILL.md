@@ -86,6 +86,7 @@ scripts/restore.sh                  # rebuild a machine — infers the source sn
 scripts/restore.sh --from <host>    # ...unless several exist, then name one
 scripts/backup.sh [--check]         # manual snapshot / drift check
 scripts/verify.sh [--quiet]         # does the restored config actually WORK?
+scripts/remote-marketplaces.sh [--check|--dry-run]  # local marketplaces -> their remote, autoUpdate on
 scripts/apply.sh [--check|--force]  # merge shared prefs + install shared output styles
 scripts/apply.sh --styles-only      # ...only the styles half (what the session-start hook runs)
 scripts/apply.sh --settings-only    # ...only the settings half
@@ -129,6 +130,11 @@ old machine actually had.
 - **Restore stops at what a script cannot do** — SSH keys, `gh auth`, `/login`, MCP re-auth,
   secret files — and prints them as a checklist. A restore that silently skips those looks
   complete and isn't.
+- **Marketplaces come back remote.** A `directory` marketplace runs plugins out of a working
+  tree no other machine sees. `restore.sh` rewrites each one whose checkout (or `repos.txt`
+  entry) has a remote to a `github`/`git` source with `autoUpdate: true`, keeping the name so
+  every install survives; the session-start check flags any that remain. Develop with
+  `claude --plugin-dir` instead, or set `MC_KEEP_DIRECTORY_MARKETPLACES=1` to keep one local.
 - **Verify behavior, not file presence.** `restore.sh` ends by running `verify.sh`: a hook can
   be present, executable and wired, read state that never arrived, and exit 0 — only asking the
   component can see that. A degraded component is a to-do, not a failed restore, and the manual

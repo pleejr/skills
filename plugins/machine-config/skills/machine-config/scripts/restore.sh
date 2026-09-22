@@ -104,6 +104,17 @@ if [ -f "$CFG/settings.json" ] && grep -Eq '"/(Users|home)/' "$CFG/settings.json
   [ -n "$bad" ] && echo "restore: WARNING — settings.json references other home dirs ($bad); fix those paths."
 fi
 
+# A snapshot can carry a `directory` marketplace — the old machine's working tree. Restored as
+# is, the new machine would load plugins from a path its clone list has not even created yet,
+# and afterwards from whatever that checkout happens to hold. Point it at its remote instead;
+# on a dry run, show the rewrite against the snapshot's copy without writing it.
+echo
+if [ "$dry" -eq 1 ]; then
+  CLAUDE_CONFIG_DIR="$src" "$here/remote-marketplaces.sh" --repos "$src/repos.txt" --dry-run
+else
+  "$here/remote-marketplaces.sh" --repos "$src/repos.txt"
+fi
+
 echo
 echo "Clone list from $src_host:"
 if [ -f "$src/repos.txt" ]; then
