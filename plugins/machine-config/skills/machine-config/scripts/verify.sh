@@ -3,7 +3,7 @@
 # Deterministic; NEVER spawns `claude`.
 #
 # WHY THIS EXISTS. A restore that copies every byte correctly can still hand back a machine
-# whose modes are off. `expand-acronyms` was the worked example: settings.json carried the
+# whose modes are off. The since-retired `expand-acronyms` was the worked example: settings.json carried the
 # wired hook, the hook's script was restored, and the two files it reads were not — so the
 # hook ran, found nothing, correctly treated missing-as-off, and exited 0. Every file the
 # restore knew about was present and the mode was gone. Presence checks cannot see that;

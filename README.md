@@ -34,12 +34,6 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | [`scope-a-grant-from-observed-use`](plugins/infra/skills/scope-a-grant-from-observed-use/SKILL.md) | Derive a least-privilege grant from what a principal is observed to do — not from what it holds or what was requested — and name explicitly where the evidence of use is blind. |
 | [`settle-what-governs-an-attribute`](plugins/infra/skills/settle-what-governs-an-attribute/SKILL.md) | Read config, state and live as three separate answers and enumerate every writer of a field before claiming what an apply will do to it. |
 
-### acronyms
-
-| Skill | What it does |
-|-------|--------------|
-| [`expand-acronyms`](plugins/acronyms/skills/expand-acronyms/SKILL.md) | Toggleable always-on mode that spells out every acronym on first use per reply, with a personal skip-list of already-known terms that can be added to mid-conversation; persists across compaction via an opt-in UserPromptSubmit hook. |
-
 ### herdr
 
 | Skill | What it does |
@@ -72,7 +66,6 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 |---|---|---|
 | `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
 | `infra` | Terraform, access and credential skills | — |
-| `acronyms` | expand-acronyms | UserPromptSubmit |
 | `herdr` | herdr-name, peer-sessions | SessionStart |
 | `machine-config` | machine-config | SessionStart, SessionEnd |
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
@@ -142,14 +135,13 @@ commit it.
 
 ## Moving a machine off the old symlink install
 
-Machines set up before the plugins linked skills into `~/.claude/skills/` with `bin/link.sh` and pulled at session start. Both are gone from this repo; the same steps apply on either boundary. Order matters where a legacy wiring refuses to change once its plugin is enabled.
+Machines set up before the plugins linked skills into `~/.claude/skills/` with `bin/link.sh` and pulled at session start. Both are gone from this repo; the same steps apply on either boundary.
 
-1. **Unwire expand-acronyms first**, if the machine uses it: `<skills clone>/plugins/acronyms/skills/expand-acronyms/scripts/acronyms.sh unwire`. It refuses in plugin mode. Its mode and skip-list live in `~/.claude/skill-state` and carry over.
-2. Add the marketplace and install the plugins (see [Install](#install)).
-3. **Remove the old links and the sync:** every symlink in `~/.claude/skills/` pointing into the clone, `~/.claude/session-checks.d/pleejr-skills.sh`, and `~/.claude/skill-tags`.
-4. **Legacy hooks:** `plugins/machine-config/skills/machine-config/scripts/install.sh` removes machine-config's SessionEnd hook and both `session-checks.d` drop-ins (with the plugin enabled it unwires instead of wiring). Delete a `settings.json` SessionStart entry running `herdr-name.sh session-start` by hand.
-5. **Output styles:** `apply.sh --styles-only` (same directory) removes the copies it installed; rename `outputStyle` wherever it is set, from `Briefing` to `craft:Briefing`. A stale name falls back to the default style without a warning from Claude Code.
-6. **Restart, then check:** each `<plugin>:` skill is listed once, `/output-style` lists the `craft:` styles once, and `scripts/verify.sh` reports every enabled plugin's hooks healthy.
+1. Add the marketplace and install the plugins (see [Install](#install)).
+2. **Remove the old links and the sync:** every symlink in `~/.claude/skills/` pointing into the clone, `~/.claude/session-checks.d/pleejr-skills.sh`, and `~/.claude/skill-tags`.
+3. **Legacy hooks:** `plugins/machine-config/skills/machine-config/scripts/install.sh` removes machine-config's SessionEnd hook and both `session-checks.d` drop-ins (with the plugin enabled it unwires instead of wiring). Delete a `settings.json` SessionStart entry running `herdr-name.sh session-start` by hand.
+4. **Output styles:** `apply.sh --styles-only` (same directory) removes the copies it installed; rename `outputStyle` wherever it is set, from `Briefing` to `craft:Briefing`. A stale name falls back to the default style without a warning from Claude Code.
+5. **Restart, then check:** each `<plugin>:` skill is listed once, `/output-style` lists the `craft:` styles once, and `scripts/verify.sh` reports every enabled plugin's hooks healthy.
 
 ## Repo tooling
 

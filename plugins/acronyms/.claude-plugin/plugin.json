@@ -1,6 +1,0 @@
-{
-  "name": "acronyms",
-  "description": "Always-on acronym expansion: a UserPromptSubmit hook that spells out every acronym on first use per reply, with a per-user skip-list.",
-  "author": { "name": "pleejr", "email": "preston@pleejr.com" },
-  "homepage": "https://github.com/pleejr/skills"
-}

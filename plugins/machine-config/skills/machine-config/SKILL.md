@@ -166,8 +166,8 @@ the script `settings.json` already points at, and accepting a `selfcheck` argume
 - exits 0 when healthy, non-zero when degraded.
 
 Only marker-carrying scripts are called: a hook command is arbitrary code, and probing it with an
-unexpected argument could have side effects a verification pass must not cause. `expand-acronyms`
-is the worked example — its degraded case, a wired hook with no mode file behind it, is
+unexpected argument could have side effects a verification pass must not cause. The retired `expand-acronyms`
+was the worked example — its degraded case, a wired hook with no mode file behind it, is
 indistinguishable from health by inspection.
 
 ## When advising
