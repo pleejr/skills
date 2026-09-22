@@ -58,6 +58,12 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | Skill | What it does |
 |-------|--------------|
 | [`plugin-updates`](plugins/plugin-updates/skills/plugin-updates/SKILL.md) | Session-start report of every installed plugin behind its marketplace's latest release — any marketplace, rate-limited lookup, self-clearing — with an offer to update and a reload instruction; never runs claude from the hook. |
+
+### statusline
+
+| Skill | What it does |
+|-------|--------------|
+| [`statusline`](plugins/statusline/skills/statusline/SKILL.md) | A status line showing model, directory, context bands, the 5h/7d subscription windows, a spinner while shell work runs, and the idle timer — plus the wiring script a plugin needs because Claude Code allows only one statusLine and no plugin can provide it. |
 <!-- skills:end -->
 
 ## Install
@@ -70,8 +76,21 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | `herdr` | herdr-name, peer-sessions | SessionStart |
 | `machine-config` | machine-config | SessionStart, SessionEnd |
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
+| `statusline` | statusline: the bar under the prompt — model, directory, context bands, 5h/7d usage, a work spinner and the idle timer | SessionStart, Stop, UserPromptSubmit, SessionEnd |
 
 A plugin that carries a hook wires it through its own `hooks/hooks.json`, so enabling the plugin is the wiring; nothing goes in `settings.json` by hand.
+
+**`statusline` is the one exception.** Claude Code allows exactly one `statusLine` and a plugin
+cannot provide it — a plugin's `settings.json` supports only `agent` and `subagentStatusLine` — so
+enabling that plugin wires its hooks but draws nothing until you run its script once:
+
+```sh
+"$HOME/.claude/plugins/cache/pleejr/statusline"/*/skills/statusline/scripts/wire.sh wire
+```
+
+It writes a marked command (`CC_STATUSLINE=pleejr "<path>/statusline.sh"`), backs `settings.json`
+up first, and saves any status line it replaced. Its SessionStart hook repoints that entry after a
+version bump and touches nothing it did not write; `wire.sh unwire` puts the old one back.
 
 **Using the skills** — from GitHub, updated by Claude Code's own plugin refresh:
 

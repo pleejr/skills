@@ -51,6 +51,12 @@
       "description": "Session-start report of every installed plugin behind its marketplace's latest release, with an offer to update; works with any marketplace.",
       "source": "./plugins/plugin-updates",
       "category": "productivity"
+    },
+    {
+      "name": "statusline",
+      "description": "A status line under the prompt: model, directory, context bands, the 5h/7d subscription windows, a spinner while shell work runs, and an idle timer; wired by its own script.",
+      "source": "./plugins/statusline",
+      "category": "productivity"
     }
   ]
 }
