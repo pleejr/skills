@@ -1,0 +1,9 @@
+{
+  "name": "statusline",
+  "description": "A status line showing model, directory, context-window usage in colored bands, the 5-hour and 7-day subscription windows, a spinner while shell work is in flight, and how long the session has been waiting on you. Wired into settings.json by its own script, because Claude Code allows only one statusLine and no plugin can provide it.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}
