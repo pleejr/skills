@@ -154,6 +154,14 @@ out="$(run | msg)"
 if printf '%s' "$out" | grep -q 'mk (lookup failed)'; then ck 0 "a failed lookup's reason is kept inside the interval"; else ck 1 "reason lost inside the interval: $out"; fi
 mv "$GH.off" "$GH"
 
+# 7d — a GitHub source HTTPS cannot reach (private, no credential helper) is fetched over SSH.
+# Found live: a private marketplace read `not checked: pleejr-ww (lookup failed)` every session.
+# 7 above is the control: with no SSH route either, the same marketplace is still not checked.
+rm -rf "$DATA"; mkdir -p "$DATA"; mv "$GH" "$GH.ssh"
+out="$(PLUGIN_UPDATES_INTERVAL=0 PLUGIN_UPDATES_GITHUB_SSH_BASE="$GH.ssh" run | msg)"
+if ! printf '%s' "$out" | grep -q 'not checked.*mk'; then ck 0 "a GitHub source HTTPS cannot reach is fetched over SSH"; else ck 1 "SSH fallback unused: $out"; fi
+mv "$GH.ssh" "$GH"
+
 # 7c — a marketplace whose SOURCE changed is looked up at once, not after the interval.
 # machine-config restores a directory marketplace as its GitHub remote; the directory
 # lookup's stamp then held the new source's first fetch off for a day.
