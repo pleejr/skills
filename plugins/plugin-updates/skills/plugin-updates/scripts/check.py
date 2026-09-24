@@ -69,16 +69,31 @@ def epoch(iso):
         return 0.0
 
 
-def remote_url(src):
+def remote_urls(src):
+    """URLs to fetch a source from, in order. A GitHub source tries HTTPS, then SSH: credential
+    helpers are off, so a private repo fails over HTTPS and only a loaded SSH key (BatchMode, no
+    prompt) can reach it — found live as `not checked: pleejr-ww (lookup failed)`."""
     kind = src.get("source")
     if kind == "github" and src.get("repo"):
-        base = os.environ.get("PLUGIN_UPDATES_GITHUB_BASE")
-        if base:
-            return f"{base}/{src['repo'].split('/')[-1]}.git"
-        return f"https://github.com/{src['repo']}.git"
+        name = src["repo"].split("/")[-1]
+        bases = [os.environ.get(k) for k in ("PLUGIN_UPDATES_GITHUB_BASE", "PLUGIN_UPDATES_GITHUB_SSH_BASE")]
+        if bases[0]:
+            return [f"{b}/{name}.git" for b in bases if b]
+        return [f"https://github.com/{src['repo']}.git", f"git@github.com:{src['repo']}.git"]
     if kind == "git" and src.get("url"):
-        return src["url"]
-    return None
+        return [src["url"]]
+    return []
+
+
+def fetch(mirror, urls, ref):
+    """Fetch ref into the mirror from the first URL that answers. Returns True on success."""
+    for url in urls:
+        t = min(8.0, remaining())
+        if t <= 1:
+            return False
+        if git("-C", mirror, "fetch", "-q", "--no-tags", url, f"+{ref}:refs/pu/latest", timeout=t) is not None:
+            return True
+    return False
 
 
 def safe(name):
@@ -108,16 +123,15 @@ def lookup(name, src, state):
         st["upstream"] = out.split()[0]
         st["upstream_name"] = up.strip()
         return None
-    url = remote_url(src)
-    if not url:
+    urls = remote_urls(src)
+    if not urls:
         return f"source type {src.get('source')!r} is not checked"
     mirror = os.path.join(DATA, "mirrors", safe(name) + ".git")
     if not os.path.isdir(mirror):
         os.makedirs(os.path.dirname(mirror), exist_ok=True)
         if git("init", "-q", "--bare", mirror) is None:
             return "could not create a mirror"
-    ref = src.get("ref") or "HEAD"
-    if git("-C", mirror, "fetch", "-q", "--no-tags", url, f"+{ref}:refs/pu/latest", timeout=t) is None:
+    if not fetch(mirror, urls, src.get("ref") or "HEAD"):
         return "lookup failed"
     return None
 
@@ -127,8 +141,8 @@ def external(ident, src, state, due):
     in that repo's plugin.json, not in the marketplace, so the marketplace lookup cannot answer
     it — found live as `not checked: credential-guard@pleejr`. Mirrored and rate-limited exactly
     like a marketplace. Returns (version_or_commit, None) or (None, reason)."""
-    url = remote_url(src)
-    if not url:
+    urls = remote_urls(src)
+    if not urls:
         return None, f"source type {src.get('source')!r} is not checked"
     mirror = os.path.join(DATA, "mirrors", "ext_" + safe(ident) + ".git")
     if due:
@@ -141,8 +155,7 @@ def external(ident, src, state, due):
             os.makedirs(os.path.dirname(mirror), exist_ok=True)
             if git("init", "-q", "--bare", mirror) is None:
                 return None, "could not create a mirror"
-        ref = src.get("ref") or "HEAD"
-        if git("-C", mirror, "fetch", "-q", "--no-tags", url, f"+{ref}:refs/pu/latest", timeout=t) is None:
+        if not fetch(mirror, urls, src.get("ref") or "HEAD"):
             return None, "lookup failed"
     if not os.path.isdir(mirror):
         return None, "never looked up"

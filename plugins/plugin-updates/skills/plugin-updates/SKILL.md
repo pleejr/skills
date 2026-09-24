@@ -60,7 +60,9 @@ python3 "$S/check.py" --refresh    # look every marketplace up now
 - **A plugin updated after the last lookup forces a new one.** The lookup then predates at least
   one release, so a newer one may exist; waiting out the interval would hide it for a day.
 - **No credentials, no prompts.** Credential helpers are off for the lookup, so a private
-  repository fails as "not checked" rather than opening a keychain prompt at session start.
+  GitHub repository fails over HTTPS rather than opening a keychain prompt at session start;
+  the lookup then retries over SSH (`BatchMode`, no prompt), which a loaded key can answer.
+  A private repository with no SSH key reports "not checked".
 - **Never runs `claude`.** The hook is git and file reads only; the update commands are run by
   the assistant after the user agrees.
 - `PLUGIN_UPDATES_CHECK=0` turns it off — silent, no lookup.
