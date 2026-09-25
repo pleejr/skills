@@ -1,7 +1,7 @@
 ---
 name: plugin-updates
 description: This skill should be used to report which installed Claude Code plugins are behind their marketplace's latest release and to update them on the user's say-so — acting on the session-start "plugins: N outdated" banner, or checking on demand. Lists each outdated plugin with installed → latest, runs the update commands the check printed only after the user agrees, then tells the user to run /reload-plugins or start a new session so the updates load. Covers every marketplace — GitHub, git, and local directory clones, including a clone behind its own upstream. Triggers: "are my plugins up to date", "check for plugin updates", "which plugins are outdated", "update my plugins", "update them", "the banner says plugins are outdated", "refresh the plugin check", "/plugin-updates". Distinct from `/plugin` (Claude Code's own install and marketplace UI) — this finds what is behind across all of them and names the commands. Distinct from wiki-engine's `update` skill, which records the engine release in a vault; that step still follows an engine update. NOT for installing a new plugin, adding a marketplace, or authoring one.
-version: 1.0.1
+version: 1.0.2
 summary: Session-start report of every installed plugin behind its marketplace's latest release — any marketplace, rate-limited lookup, self-clearing — with an offer to update and a reload instruction; never runs claude from the hook.
 ---
 
@@ -39,7 +39,8 @@ marketplace changes nothing it runs.
    Take the printed commands, not remembered ones.
 4. Re-run the check to confirm it is clear (below), and report what it says.
 5. Tell the user to run `/reload-plugins`, or start a new session, so this session loads the
-   updated plugins. A running session keeps the release it started with until then.
+   updated plugins. A running session keeps the release it started with until then. After the
+   reload, read the machine back — `machine-config`'s "After any converge" section lists the checks.
 6. If `wiki-engine` was among them, its vault record is a separate step: offer wiki-engine's
    `update` skill.
 

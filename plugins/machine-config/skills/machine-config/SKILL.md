@@ -1,7 +1,7 @@
 ---
 name: machine-config
 description: This skill should be used to make a machine's Claude Code configuration recoverable — snapshot `~/.claude` (settings, hooks, statusLine, enabled plugins, repo clone list) into a git repo the user controls, restore it onto a replacement machine, and share boundary-free preferences and output styles across machines through two stores. Use when setting up or rebuilding a machine, when a laptop is lost, when config has drifted from its snapshot, or when preferences or output styles should follow the user between machines. Wires an unattended SessionEnd autosave and a session-start style apply; scripts never spawn `claude` and refuse credential-shaped content; a restore ends by asking each wired component to report its own state. Triggers: "back up my Claude config", "snapshot my settings", "restore my Claude Code setup", "set up my new machine", "I lost my laptop", "make my config recoverable", "sync my preferences between machines", "share my output styles between my laptops", "what happens if this machine dies", "my config repo is stale", "promote this output style". Distinct from the plugin marketplace (which installs and updates the skills themselves) — this covers the `~/.claude` configuration itself. NOT a dotfiles manager (Claude Code config only) and NOT a secrets manager.
-version: 1.3.0
+version: 1.4.0
 summary: Make a machine's Claude Code config recoverable — autosaves ~/.claude to a git repo at session end, restores onto a replacement machine, and shares boundary-free preferences (output styles included) across machines from two stores, one of which crosses the work/personal boundary; secret-scanned, never spawns claude.
 ---
 
@@ -142,6 +142,35 @@ old machine actually had.
   list kept in the script, because a hand-maintained list rots silently.
 - **Snapshots are per machine, and per boundary.** Never restore one boundary's snapshot onto
   the other's machine: it would import that boundary's paths, repo names, and memory wiring.
+
+## After any converge — read the machine back
+
+Every step that changes this machine's wiring — `claude plugin update`, `marketplace add`, a
+relink, `restore.sh`, an engine adoption — reports on what it touched, and reports **success
+over whatever it cannot see**. Nothing fails; the gap shows up later as a wrong verdict. So once
+the step finishes, diff the machine against the union of **every** source that should feed it,
+not the one the tool knows:
+
+- **Restart before trusting a plugin update.** `claude plugin update` installs beside the old
+  release. Until the restart, the loaded skill text, a hook's stable pointer and a typed `bin/`
+  path can each run a different release — a stale converge verb once re-created the skill
+  symlinks the new release had removed, so every skill loaded twice.
+- **After `marketplace add`, re-read the entry:** `jq '.extraKnownMarketplaces' ~/.claude/settings.json`.
+  The add rewrites it and silently drops `autoUpdate`; `remote-marketplaces.sh --check` looks only
+  at `directory` sources, so it will not flag this.
+- **After an install or relink, diff `~/.claude/skills/` against every enabled plugin's skills**,
+  across all marketplaces. A linker knows only its own marketplace and reports `already linked`
+  over the collisions it cannot see.
+- **An add-only, per-machine file never receives its upgrade** — a git-ignored hook installed
+  once keeps its first template while every version record agrees. Compare it by checksum against
+  the shipped copy, and repeat on each machine; a fix copied on one reaches no other.
+- **Identify a wired entry by a marker you wrote, not by its path.** A plugin's cache path moves
+  with every release, so a path match stops recognising the entry after an update, and a loose
+  substring claims someone else's.
+- **A slot the host allows once is not filled by enabling a plugin.** A plugin cannot provide
+  `statusLine`, and a feature shipped for a slot a local script already occupies never arrives.
+
+Restore already ends with `verify.sh`; this is the same discipline for every other converge.
 
 ## Cold start on a replacement
 
