@@ -17,7 +17,14 @@
 # Bounded and locked because it runs from a lifecycle hook: a hung push must not hold up
 # session exit, and two sessions ending together must not race the git index.
 #
-# Usage: autosave.sh [--no-push]
+# The push is detached from the hook. Claude Code cancels a SessionEnd hook when the session is
+# torn down (window or pane closed, a second Ctrl-C), and a push is the slow, network-bound step:
+# commits landed but the push was killed every time, so the snapshot piled up locally and never
+# reached the remote. The detached push runs in its own session and outlives the cancellation.
+#
+# Usage: autosave.sh [--no-push | --push-now]
+#   --push-now  bounded push of any unpushed commits, in the foreground (what the detached
+#               child runs; also a manual catch-up)
 set -uo pipefail
 here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
@@ -31,6 +38,50 @@ repo="$(mc_repo 2>/dev/null)" || exit 0     # not configured on this machine: no
 host="$(mc_host)"
 
 log() { [ -n "${MACHINE_CONFIG_VERBOSE:-}" ] && printf 'autosave: %s\n' "$*"; return 0; }
+
+# Commits not yet on the upstream. No upstream counts as unpushed, so the push sets nothing
+# up but still gets tried.
+unpushed() {
+  local n
+  n="$(git -C "$repo" rev-list --count '@{u}..HEAD' 2>/dev/null)" || n=1
+  [ "${n:-0}" -gt 0 ]
+}
+
+# Bounded push: no credential prompt can hang it, and a watchdog kills a stalled network call.
+# Failure is fine — the commits are local, and the next run pushes them.
+push_now() {
+  git -C "$repo" remote get-url origin >/dev/null 2>&1 || return 0
+  unpushed || return 0
+  (
+    GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' \
+      git -C "$repo" push --quiet origin HEAD &
+    p=$!
+    ( sleep "${MACHINE_CONFIG_PUSH_TIMEOUT:-10}"; kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null ) &
+    w=$!
+    wait "$p"; kill -TERM "$w" 2>/dev/null; wait "$w"
+  ) >/dev/null 2>&1
+  log "pushed"
+}
+
+# Hand the push to a child in its own session (setsid via perl, present on macOS and Linux),
+# so cancelling the hook's process or group does not take the push with it.
+push_detached() {
+  [ "$push" -eq 1 ] || return 0
+  git -C "$repo" remote get-url origin >/dev/null 2>&1 || return 0
+  unpushed || return 0
+  if command -v perl >/dev/null 2>&1; then
+    nohup perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' bash "$here/autosave.sh" --push-now \
+      </dev/null >/dev/null 2>&1 &
+  else
+    nohup bash "$here/autosave.sh" --push-now </dev/null >/dev/null 2>&1 &
+  fi
+  log "push detached"
+}
+
+if [ "${1:-}" = "--push-now" ]; then
+  push_now
+  exit 0
+fi
 
 # One writer at a time; break a lock left by a killed session.
 lock="$repo/.git/machine-config-autosave.lock"
@@ -54,6 +105,7 @@ snapshot_committed() {
 }
 if "$here/backup.sh" --check >/dev/null 2>&1 && snapshot_committed; then
   log "current"
+  push_detached        # an earlier run may have committed and lost its push
   exit 0
 fi
 
@@ -68,7 +120,7 @@ fi
 # Only ever stage this machine's own snapshot. Someone else's half-edited shared/ change in
 # the same working tree is not ours to commit — `git add -A` here would sweep it up.
 git -C "$repo" add "machines/$host" >/dev/null 2>&1
-git -C "$repo" diff --cached --quiet 2>/dev/null && { log "nothing staged"; exit 0; }
+git -C "$repo" diff --cached --quiet 2>/dev/null && { log "nothing staged"; push_detached; exit 0; }
 
 files="$(git -C "$repo" diff --cached --name-only | sed "s|^machines/$host/||" | tr '\n' ' ')"
 git -C "$repo" -c user.useConfigOnly=false commit -q \
@@ -77,18 +129,8 @@ git -C "$repo" -c user.useConfigOnly=false commit -q \
   >/dev/null 2>&1 || { log "commit failed"; exit 0; }
 log "committed: $files"
 
-[ "$push" -eq 1 ] || exit 0
-git -C "$repo" remote get-url origin >/dev/null 2>&1 || exit 0
-
-# Bounded push: no credential prompt can hang a hook, and a watchdog kills a stalled network
-# call. Failure is fine — the commit is local, and the next run pushes it.
-(
-  GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' \
-    git -C "$repo" push --quiet origin HEAD &
-  p=$!
-  ( sleep "${MACHINE_CONFIG_PUSH_TIMEOUT:-10}"; kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null ) &
-  w=$!
-  wait "$p"; kill -TERM "$w" 2>/dev/null; wait "$w"
-) >/dev/null 2>&1
-log "pushed"
+# Release the lock first: the detached push does not touch the index, and must not hold it.
+rmdir "$lock" 2>/dev/null
+trap - EXIT
+push_detached
 exit 0
