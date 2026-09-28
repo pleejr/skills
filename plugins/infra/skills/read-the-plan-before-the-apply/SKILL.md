@@ -148,6 +148,8 @@ Verdict:  proceed | stop — <the address that was not predicted>
 
 Then apply, or stop. Do not narrate a verdict of "mostly as expected".
 
+**Apply through the machine's allow-listed run-action wrapper, never a raw `curl` POST.** The `curl` above is a read; reusing it to confirm the run is the mutation that permission gates are written to catch, and they catch it in QA as readily as in prod. Look in the machine's wrapper directory (for example `~/.claude/bin/`) before the first apply attempt, not after a denial. If a raw `curl` apply was already refused, switching to the wrapper is the sanctioned path, not a workaround — the wrapper exists so that the raw call can stay gated.
+
 ## 6. What this gate does not cover
 
 - **It does not make an irreversible change safe.** The address diff establishes *what* changes, never whether the change can be backed out. Deleting production data, releasing an address, destroying an identity, or overwriting with no saved prior version needs a human decision regardless of how cleanly the plan matched.
