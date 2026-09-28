@@ -1,7 +1,7 @@
 ---
 name: herdr-name
-description: Name the current Herdr space after the work in progress — a 1-2 word domain label on the space itself, plus a 4-5 word topic line beneath it — so the sidebar says what each session is actually doing. On demand only, never per-turn: the naming comes from session context already in hand, so it costs one command and no summarizer. Also clears a name back to the space's original label. Triggers "/herdr-name", "name this space", "rename the space", "update the space name", "set the space topic", "what is this space called", "clear the space name", "restore the space name". Distinct from the bundled `herdr` skill (which controls panes, tabs, and agents to do work) — this only labels the current space for display. NOT for renaming tabs or panes, and NOT for creating or closing workspaces.
-version: 1.1.2
+description: Name the current Herdr space after the work in progress — a 1-2 word domain label on the space itself (the ticket key, e.g. SER-642, when the work is a Jira ticket), plus a 4-5 word topic line beneath it — so the sidebar says what each session is actually doing. On demand only, never per-turn: the naming comes from session context already in hand, so it costs one command and no summarizer. Also clears a name back to the space's original label. Triggers "/herdr-name", "name this space", "rename the space", "update the space name", "set the space topic", "what is this space called", "clear the space name", "restore the space name". Distinct from the bundled `herdr` skill (which controls panes, tabs, and agents to do work) — this only labels the current space for display. NOT for renaming tabs or panes, and NOT for creating or closing workspaces.
+version: 1.2.0
 summary: On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call.
 ---
 
@@ -56,6 +56,7 @@ The script holds no judgement — it applies what you give it, fits each field t
 
 ## Writing the label
 
+- **Ticket work takes the ticket key as the label.** When the session is starting or resuming a Jira ticket, the label is its key exactly as Jira writes it — `SER-642` — and nothing else. The topic is written as below. The rest of this section applies to work with no ticket.
 - **1–2 words, title case, max 32 characters.** It has to fit a sidebar column.
 - Name the **domain**, not the current action. `Herdr Naming`, not `Editing Script`. The label should survive several turns of work inside the same domain.
 - Prefer the concrete subject over the activity: `Billing Auth` beats `Terraform Work`; `Payments Triage` beats `Debugging`.
