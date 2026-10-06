@@ -1,0 +1,46 @@
+[
+ {
+  "query": "Are my plugins up to date?",
+  "should_trigger": true
+ },
+ {
+  "query": "The banner says 2 plugins are outdated.",
+  "should_trigger": true
+ },
+ {
+  "query": "Check for plugin updates.",
+  "should_trigger": true
+ },
+ {
+  "query": "Which plugins are behind?",
+  "should_trigger": true
+ },
+ {
+  "query": "Update my plugins.",
+  "should_trigger": true
+ },
+ {
+  "query": "Install the github plugin.",
+  "should_trigger": false
+ },
+ {
+  "query": "Is the wiki engine current in my vault?",
+  "should_trigger": false
+ },
+ {
+  "query": "Update my npm packages.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a new plugin.",
+  "should_trigger": false
+ },
+ {
+  "query": "Add a marketplace.",
+  "should_trigger": false
+ },
+ {
+  "query": "Update the README.",
+  "should_trigger": false
+ }
+]

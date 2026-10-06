@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Write me a tl;dr I can paste into Slack about what we found.",
+  "should_trigger": true
+ },
+ {
+  "query": "Summarise this for the channel.",
+  "should_trigger": true
+ },
+ {
+  "query": "Correct what they said in the thread \u2014 give me something I can paste.",
+  "should_trigger": true
+ },
+ {
+  "query": "Quick write-up for the Jira ticket of the root cause.",
+  "should_trigger": true
+ },
+ {
+  "query": "What should I tell the team about the outage cause?",
+  "should_trigger": true
+ },
+ {
+  "query": "Put this finding in a paste-ready form for a PR comment.",
+  "should_trigger": true
+ },
+ {
+  "query": "Explain this concept simply for a non-engineer.",
+  "should_trigger": false
+ },
+ {
+  "query": "Post this message to the #ops channel for me.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write documentation for this API.",
+  "should_trigger": false
+ },
+ {
+  "query": "Summarize what you did this turn.",
+  "should_trigger": false
+ },
+ {
+  "query": "Draft a blog post about our migration.",
+  "should_trigger": false
+ },
+ {
+  "query": "Translate this paragraph into Spanish.",
+  "should_trigger": false
+ }
+]

@@ -1,0 +1,50 @@
+[
+ {
+  "query": "ELI5 how DNS works.",
+  "should_trigger": true
+ },
+ {
+  "query": "Explain Kubernetes to me like I'm not an engineer.",
+  "should_trigger": true
+ },
+ {
+  "query": "In plain English, what does this error mean?",
+  "should_trigger": true
+ },
+ {
+  "query": "Give me an analogy for how TLS handshakes work.",
+  "should_trigger": true
+ },
+ {
+  "query": "How would I explain eventual consistency to my manager who doesn't code?",
+  "should_trigger": true
+ },
+ {
+  "query": "I don't have the background for this \u2014 what is a mutex, really?",
+  "should_trigger": true
+ },
+ {
+  "query": "Write a tl;dr of this incident for the team channel.",
+  "should_trigger": false
+ },
+ {
+  "query": "Quiz me on how DNS works to see if I understand it.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write the README for this library.",
+  "should_trigger": false
+ },
+ {
+  "query": "Critically review this design doc.",
+  "should_trigger": false
+ },
+ {
+  "query": "Shorten this explanation; I'm an expert and short on time.",
+  "should_trigger": false
+ },
+ {
+  "query": "What is 17 times 23?",
+  "should_trigger": false
+ }
+]

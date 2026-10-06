@@ -22,7 +22,7 @@ bare_payload='{"model":{"display_name":"Opus 5"},"workspace":{"current_dir":"/tm
 echo "renderer"
 out="$(printf '%s' "$full_payload" | NO_COLOR=1 "$here/statusline.sh")"
 has 'Opus 5 | demo' "$out" && ok "model and directory" || bad "model and directory" "$out"
-has 'ctx 86% — checkpoint now' "$out" && ok "red band at 85%+, truncated not rounded" || bad "ctx band" "$out"
+has 'ctx 86% — distill now' "$out" && ok "red band at 85%+, truncated not rounded" || bad "ctx band" "$out"
 has '5h 12%' "$out" && has '7d 71%' "$out" && ok "both usage windows" || bad "usage windows" "$out"
 
 out="$(printf '%s' "$bare_payload" | NO_COLOR=1 "$here/statusline.sh")"

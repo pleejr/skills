@@ -1,0 +1,54 @@
+[
+ {
+  "query": "Back up my Claude Code config.",
+  "should_trigger": true
+ },
+ {
+  "query": "Snapshot my settings into the config repo.",
+  "should_trigger": true
+ },
+ {
+  "query": "My config has drifted from its snapshot \u2014 save it.",
+  "should_trigger": true
+ },
+ {
+  "query": "Share this output style with my other laptop.",
+  "should_trigger": true
+ },
+ {
+  "query": "What happens if this machine dies? Is my config backed up?",
+  "should_trigger": true
+ },
+ {
+  "query": "Promote this output style to the shared store.",
+  "should_trigger": true
+ },
+ {
+  "query": "I lost my laptop \u2014 restore my Claude Code setup on the new one.",
+  "should_trigger": false
+ },
+ {
+  "query": "Set up my new machine with my Claude settings.",
+  "should_trigger": false
+ },
+ {
+  "query": "Did the restore actually work?",
+  "should_trigger": false
+ },
+ {
+  "query": "Back up my dotfiles and zshrc.",
+  "should_trigger": false
+ },
+ {
+  "query": "Update my plugins.",
+  "should_trigger": false
+ },
+ {
+  "query": "Install the status line.",
+  "should_trigger": false
+ },
+ {
+  "query": "Where should I store my API keys?",
+  "should_trigger": false
+ }
+]

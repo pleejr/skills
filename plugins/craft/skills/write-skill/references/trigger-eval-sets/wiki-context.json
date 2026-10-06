@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Load the wiki context for this repo before we start.",
+  "should_trigger": true
+ },
+ {
+  "query": "What did we decide previously about how releases are tagged? Check the vault.",
+  "should_trigger": true
+ },
+ {
+  "query": "Before I touch the engine, pull up what the vault knows about it.",
+  "should_trigger": true
+ },
+ {
+  "query": "Do I have any prior notes or lessons about worktree concurrency?",
+  "should_trigger": true
+ },
+ {
+  "query": "Starting work on the homelab project \u2014 get me up to speed from my notes.",
+  "should_trigger": true
+ },
+ {
+  "query": "Is the wiki page for this repo still fresh?",
+  "should_trigger": true
+ },
+ {
+  "query": "Refresh the wiki page for the skills repo; its sha moved.",
+  "should_trigger": false
+ },
+ {
+  "query": "Save this lesson to the vault.",
+  "should_trigger": false
+ },
+ {
+  "query": "Explain how git worktrees work.",
+  "should_trigger": false
+ },
+ {
+  "query": "Mine my notes for repeated procedures.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a Python function that reverses a list.",
+  "should_trigger": false
+ },
+ {
+  "query": "What is the capital of France?",
+  "should_trigger": false
+ }
+]

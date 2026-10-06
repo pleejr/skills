@@ -39,8 +39,8 @@ fi
 ctx_frag=""
 ctx="$(printf '%s' "$payload" | jq -r '.context_window.used_percentage // empty' 2>/dev/null | cut -d. -f1)"
 if [ -n "$ctx" ] && [ "$ctx" -eq "$ctx" ] 2>/dev/null; then
-  if   [ "$ctx" -ge 85 ]; then ctx_frag=" | ${RED}ctx ${ctx}% — checkpoint now${RESET}"
-  elif [ "$ctx" -ge 70 ]; then ctx_frag=" | ${AMBER}ctx ${ctx}% — checkpoint soon${RESET}"
+  if   [ "$ctx" -ge 85 ]; then ctx_frag=" | ${RED}ctx ${ctx}% — distill now${RESET}"
+  elif [ "$ctx" -ge 70 ]; then ctx_frag=" | ${AMBER}ctx ${ctx}% — distill soon${RESET}"
   else                         ctx_frag=" | ${GREEN}ctx ${ctx}%${RESET}"
   fi
 fi

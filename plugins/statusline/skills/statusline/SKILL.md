@@ -1,6 +1,6 @@
 ---
 name: statusline
-description: This skill should be used to install, change, diagnose or remove the Claude Code status line this plugin ships — the bar under the prompt showing model, directory, context-window percentage in colored bands, the 5-hour and 7-day subscription windows, a spinner while shell work is in flight, and how long the session has been waiting on you. Covers the wiring that enabling the plugin cannot do (Claude Code allows one statusLine and no plugin may provide it), what each segment means, why a segment is missing rather than broken, and how to hand the statusLine back to a script that was there before. Triggers "install the status line", "wire up the statusline plugin", "my status line is blank", "why is there no ctx percentage", "what does the spinner in the status line mean", "the idle timer is stuck", "turn the status line off", "put my old status line back", "point the status line at the new version". Distinct from `machine-config` (which snapshots whatever settings.json says, including this) and from Claude Code's own `/statusline` setup command, which writes a fresh script rather than wiring this one. NOT for authoring an unrelated status line from scratch.
+description: This skill should be used to install, change, diagnose or remove the Claude Code status line this plugin ships — the bar under the prompt showing model, directory, context-window percentage in colored bands, the 5-hour and 7-day subscription windows, a spinner while shell work is in flight, and how long the session has been waiting on you. Covers the wiring that enabling the plugin cannot do (Claude Code allows one statusLine and no plugin may provide it), what each segment means, why a segment is missing rather than broken, and how to hand the statusLine back to a script that was there before. Triggers "install the status line", "wire up the statusline plugin", "my status line is blank", "why is there no ctx percentage", "what does the spinner in the status line mean", "the idle timer is stuck", "turn the status line off", "put my old status line back", "point the status line at the new version". Distinct from `snapshot` (which snapshots whatever settings.json says, including this) and from Claude Code's own `/statusline` setup command, which writes a fresh script rather than wiring this one. NOT for authoring an unrelated status line from scratch.
 version: 1.0.0
 summary: A status line showing model, directory, context bands, the 5h/7d subscription windows, a spinner while shell work runs, and the idle timer — plus the wiring script a plugin needs because Claude Code allows only one statusLine and no plugin can provide it.
 ---
@@ -34,8 +34,8 @@ first, and `heal` exits 0 whatever it finds, so it can never block a session sta
 
 `Opus 5 | repos | ctx 42% | 5h 12% | 7d 71% | ⠙ 2 running | ⏳ idle 3m07s`
 
-- **ctx** — context-window usage. Green below 70%, amber from 70% with `checkpoint soon`, red from
-  85% with `checkpoint now`. Truncated, never rounded, so 84.9% cannot escalate a band.
+- **ctx** — context-window usage. Green below 70%, amber from 70% with `distill soon`, red from
+  85% with `distill now`. Truncated, never rounded, so 84.9% cannot escalate a band.
 - **5h / 7d / spend** — subscription usage from `.rate_limits`, same bands. The host sends these
   only on a subscription (or behind a gateway reporting a spend limit) and only after the session's
   first API response.

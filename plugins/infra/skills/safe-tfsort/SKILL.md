@@ -37,7 +37,7 @@ non-blank line of the original is preserved *and* the result is valid HCL. The w
 Run the wrapper on the variables/outputs files. It accepts multiple paths.
 
 ```bash
-S="$(readlink ~/.claude/skills/safe-tfsort)/scripts/tfsort_safe.py"   # the symlink is the pointer; the checkout path differs per machine
+S="$(readlink ~/.claude/skills/sort-tf)/scripts/tfsort_safe.py"   # the symlink is the pointer; the checkout path differs per machine
 
 # Preview without writing:
 python3 $S --dry-run path/to/variables.tf

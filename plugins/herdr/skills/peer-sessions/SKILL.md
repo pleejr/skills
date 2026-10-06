@@ -1,6 +1,6 @@
 ---
 name: peer-sessions
-description: This skill should be used to run several Claude Code sessions side by side on one machine and let them talk to each other — spawn a named fleet into herdr panes, tabs, or workspaces, send each peer a brief, end the turn, and collect the replies that arrive as new user turns. Use it when one task splits into independent pieces that each want their own context window, their own directory, or their own permission surface, and when an in-process subagent will not do because the work needs a real interactive session. Produces a live fleet with a verified peer address per session, plus a teardown block the user decides whether to run. Triggers "spawn a fleet", "peer sessions", "start three claude sessions", "run these in parallel sessions", "launch a peer session", "message another session", "send this to my other session", "which sessions are live", "collect the fleet's work", "tear down the fleet", "why can't I reach that session". Distinct from the bundled `herdr` skill (which drives panes, tabs, and agents for this session's own work) and from `herdr-name` (which only labels the current space) — this one starts sibling `claude` processes and addresses them. NOT for in-process subagents or fan-out inside one conversation (use the Agent tool or a workflow), and NOT for running a background shell command (use Bash).
+description: This skill should be used to run several Claude Code sessions side by side on one machine and let them talk to each other — spawn a named fleet into herdr panes, tabs, or workspaces, send each peer a brief, end the turn, and collect the replies that arrive as new user turns. Use it when one task splits into independent pieces that each want their own context window, their own directory, or their own permission surface, and when an in-process subagent will not do because the work needs a real interactive session. Produces a live fleet with a verified peer address per session, plus a teardown block the user decides whether to run. Triggers "spawn a fleet", "peer sessions", "start three claude sessions", "run these in parallel sessions", "launch a peer session", "message another session", "send this to my other session", "which sessions are live", "collect the fleet's work", "tear down the fleet", "why can't I reach that session". Distinct from the bundled `herdr` skill (which drives panes, tabs, and agents for this session's own work) and from `name` (which only labels the current space) — this one starts sibling `claude` processes and addresses them. NOT for in-process subagents or fan-out inside one conversation (use the Agent tool or a workflow), and NOT for running a background shell command (use Bash).
 version: 2.1.0
 summary: Spawn a fleet of named interactive Claude Code sessions into herdr panes, gate readiness on the messaging socket, brief each peer over native SendMessage, harvest the work before it is lost, and hand back a teardown.
 ---
@@ -16,7 +16,7 @@ The message path is native: `SendMessage` briefs a peer by name, `ListAgents` li
 ```bash
 test "${HERDR_ENV:-}" = 1        # inside a herdr pane
 claude --version                 # 2.1.224 or newer, for peer messages
-PS="$(readlink ~/.claude/skills/peer-sessions)/scripts"   # the symlink is the pointer
+PS="$(readlink ~/.claude/skills/spawn)/scripts"   # the symlink is the pointer
 python3 "$PS/peer-addr.py" --me
 ```
 
@@ -96,7 +96,7 @@ python3 "$PS/peer-addr.py"        # confirm gone
 - `references/troubleshooting.md` — the four gates a message passes, the harness-scoping tell, herdr and `claude` traps.
 - `references/mixed-fleets.md` — peers that are not `claude`: no socket, so herdr's own commands are the channel.
 
-Not this skill's job: the user's own layout (the bundled `herdr` skill), naming the current space (`herdr-name`), a background shell command (Bash).
+Not this skill's job: the user's own layout (the bundled `herdr` skill), naming the current space (`name`), a background shell command (Bash).
 
 ---
 

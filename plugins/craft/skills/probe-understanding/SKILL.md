@@ -151,7 +151,7 @@ The loop runs until **every sourced sub-area scores 5 on all four dimensions**, 
 
 Nothing else. In particular:
 
-- **Write nothing.** No vault note, no project page, no `log.md` entry, no branch. This is study practice, and its footprint is the conversation. If the operator wants the gaps kept, they will say so — then it is `checkpoint`'s job, not this skill's.
+- **Write nothing.** No vault note, no project page, no `log.md` entry, no branch. This is study practice, and its footprint is the conversation. If the operator wants the gaps kept, they will say so — then it is `distill`'s job, not this skill's.
 - Do not offer a next drill, a study plan, or reading. The report ends the turn.
 
 ## 9. Failure modes to avoid

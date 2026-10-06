@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/plugin-updates/scripts/session-hook.sh\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/check-plugin-updates/scripts/session-hook.sh\"",
             "timeout": 30
           }
         ]

@@ -1,0 +1,46 @@
+[
+ {
+  "query": "Sort the variables in variables.tf.",
+  "should_trigger": true
+ },
+ {
+  "query": "Run tfsort on this module.",
+  "should_trigger": true
+ },
+ {
+  "query": "Alphabetize the outputs in outputs.tf.",
+  "should_trigger": true
+ },
+ {
+  "query": "I'm updating this Terraform module's variables file \u2014 tidy the order.",
+  "should_trigger": true
+ },
+ {
+  "query": "tfsort the variables file without losing comments.",
+  "should_trigger": true
+ },
+ {
+  "query": "Is this terraform plan safe to apply?",
+  "should_trigger": false
+ },
+ {
+  "query": "Sort this Python list alphabetically.",
+  "should_trigger": false
+ },
+ {
+  "query": "Format this Terraform with terraform fmt.",
+  "should_trigger": false
+ },
+ {
+  "query": "Why does this diff keep coming back in the plan?",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a new Terraform module for an S3 bucket.",
+  "should_trigger": false
+ },
+ {
+  "query": "Sort my package.json dependencies.",
+  "should_trigger": false
+ }
+]

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/machine-config/scripts/session-hook.sh\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/snapshot/scripts/session-hook.sh\"",
             "timeout": 30
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/machine-config/scripts/autosave.sh\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/skills/snapshot/scripts/autosave.sh\"",
             "timeout": 30
           }
         ]

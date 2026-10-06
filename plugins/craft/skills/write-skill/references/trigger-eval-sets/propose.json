@@ -1,0 +1,50 @@
+[
+ {
+  "query": "I found a bug in the wiki engine \u2014 report it upstream.",
+  "should_trigger": true
+ },
+ {
+  "query": "This should live in the engine, not in my vault. Propose it upstream.",
+  "should_trigger": true
+ },
+ {
+  "query": "Did my engine proposal ship?",
+  "should_trigger": true
+ },
+ {
+  "query": "Should I just fix this in the engine's installed copy?",
+  "should_trigger": true
+ },
+ {
+  "query": "Intake the new proposal in the engine queue.",
+  "should_trigger": true
+ },
+ {
+  "query": "Report this defect upstream to the engine.",
+  "should_trigger": true
+ },
+ {
+  "query": "Move this note to my personal vault.",
+  "should_trigger": false
+ },
+ {
+  "query": "Save this decision in the vault.",
+  "should_trigger": false
+ },
+ {
+  "query": "Open a GitHub issue on the React repo about this bug.",
+  "should_trigger": false
+ },
+ {
+  "query": "Drain the engine queue.",
+  "should_trigger": false
+ },
+ {
+  "query": "Update the engine on this machine.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a design doc for a new feature.",
+  "should_trigger": false
+ }
+]

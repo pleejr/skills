@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Quiz me on how the worktree isolation works.",
+  "should_trigger": true
+ },
+ {
+  "query": "Probe my understanding of TCP congestion control.",
+  "should_trigger": true
+ },
+ {
+  "query": "Do I actually understand this? Make me explain it back.",
+  "should_trigger": true
+ },
+ {
+  "query": "Teach me this first, then test me.",
+  "should_trigger": true
+ },
+ {
+  "query": "Check my mental model of how the recall hook works.",
+  "should_trigger": true
+ },
+ {
+  "query": "I want to actually learn this system, not just ship it.",
+  "should_trigger": true
+ },
+ {
+  "query": "Explain how the recall hook works.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a quiz for my students about photosynthesis.",
+  "should_trigger": false
+ },
+ {
+  "query": "Review this design for flaws.",
+  "should_trigger": false
+ },
+ {
+  "query": "What does this function return?",
+  "should_trigger": false
+ },
+ {
+  "query": "Grade my colleague's answer to this question.",
+  "should_trigger": false
+ },
+ {
+  "query": "Summarize this document.",
+  "should_trigger": false
+ }
+]
