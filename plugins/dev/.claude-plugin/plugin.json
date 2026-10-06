@@ -1,0 +1,9 @@
+{
+  "name": "dev",
+  "description": "Everyday code-hygiene skills: sort imports with the project's own tooling.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills"
+}

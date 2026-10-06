@@ -20,6 +20,12 @@
       "category": "development"
     },
     {
+      "name": "dev",
+      "description": "Everyday code-hygiene skills: sort imports with the project's own tooling.",
+      "source": "./plugins/dev",
+      "category": "development"
+    },
+    {
       "name": "herdr",
       "description": "Herdr space naming and peer Claude Code sessions; resets the space name at session start.",
       "source": "./plugins/herdr",

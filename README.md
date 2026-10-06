@@ -35,6 +35,12 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | [`scope-a-grant-from-observed-use`](plugins/infra/skills/scope-a-grant-from-observed-use/SKILL.md) | Derive a least-privilege grant from what a principal is observed to do — not from what it holds or what was requested — and name explicitly where the evidence of use is blind. |
 | [`settle-what-governs-an-attribute`](plugins/infra/skills/settle-what-governs-an-attribute/SKILL.md) | Read config, state and live as three separate answers and enumerate every writer of a field before claiming what an apply will do to it. |
 
+### dev
+
+| Skill | What it does |
+|-------|--------------|
+| [`sort-imports`](plugins/dev/skills/sort-imports/SKILL.md) | Sort and group imports using the project's own configured tool (never a hand-written ordering), scoped to the requested files, then verify the diff touched only import lines and the build still resolves. |
+
 ### herdr
 
 | Skill | What it does |
@@ -67,6 +73,7 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 |---|---|---|
 | `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
 | `infra` | Terraform, access and credential skills | — |
+| `dev` | sort-imports: orders imports with the project's own configured tool | — |
 | `herdr` | herdr-name, peer-sessions | SessionStart |
 | `machine-config` | machine-config | SessionStart, SessionEnd |
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
