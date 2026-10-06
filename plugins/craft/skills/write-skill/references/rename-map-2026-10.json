@@ -1,0 +1,67 @@
+[
+ {
+  "plugin": "wiki-engine",
+  "old": "checkpoint",
+  "new": "distill"
+ },
+ {
+  "plugin": "wiki-engine",
+  "old": "crossover",
+  "new": "export"
+ },
+ {
+  "plugin": "wiki-engine",
+  "old": "engine-proposal",
+  "new": "propose"
+ },
+ {
+  "plugin": "wiki-engine",
+  "old": "skill-candidates",
+  "new": "mine"
+ },
+ {
+  "plugin": "wiki-engine",
+  "old": "wiki-adopt",
+  "new": "adopt"
+ },
+ {
+  "plugin": "wiki-engine",
+  "old": "wiki-onboard",
+  "new": "onboard"
+ },
+ {
+  "plugin": "wiki-engine",
+  "old": "wiki-repo",
+  "new": "ingest"
+ },
+ {
+  "plugin": "craft",
+  "old": "hook-authoring",
+  "new": "write-hook"
+ },
+ {
+  "plugin": "craft",
+  "old": "skill-author",
+  "new": "write-skill"
+ },
+ {
+  "plugin": "herdr",
+  "old": "herdr-name",
+  "new": "name"
+ },
+ {
+  "plugin": "infra",
+  "old": "blast-radius-before-a-shared-change",
+  "new": "map-blast-radius"
+ },
+ {
+  "plugin": "machine-config",
+  "old": "machine-config",
+  "new": "snapshot"
+ },
+ {
+  "plugin": "plugin-updates",
+  "old": "plugin-updates",
+  "new": "check-plugin-updates"
+ }
+]

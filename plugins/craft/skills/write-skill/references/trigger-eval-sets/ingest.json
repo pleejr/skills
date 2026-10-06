@@ -1,0 +1,46 @@
+[
+ {
+  "query": "Ingest this repo into the wiki.",
+  "should_trigger": true
+ },
+ {
+  "query": "The wiki page for the skills repo is stale \u2014 its recorded sha differs from HEAD. Refresh it.",
+  "should_trigger": true
+ },
+ {
+  "query": "Document this repository as a page in my vault.",
+  "should_trigger": true
+ },
+ {
+  "query": "Add a repo page for the homelab repo with provenance.",
+  "should_trigger": true
+ },
+ {
+  "query": "Re-ingest the engine's repo page; it moved three commits.",
+  "should_trigger": true
+ },
+ {
+  "query": "Verify the wiki-engine repo page is still correct at its recorded sha.",
+  "should_trigger": false
+ },
+ {
+  "query": "What does the vault say about this repo?",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a README for this repo.",
+  "should_trigger": false
+ },
+ {
+  "query": "Move this note to my other vault.",
+  "should_trigger": false
+ },
+ {
+  "query": "Summarize the differences between these three repos.",
+  "should_trigger": false
+ },
+ {
+  "query": "Wrap up the session and update the project page.",
+  "should_trigger": false
+ }
+]

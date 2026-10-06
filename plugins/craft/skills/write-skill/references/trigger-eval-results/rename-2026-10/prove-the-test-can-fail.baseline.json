@@ -1,0 +1,101 @@
+{
+ "skill": "wiki-engine:prove-the-test-can-fail",
+ "renamed_from": null,
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 12,
+   "scored": 12,
+   "passed": 11,
+   "failed": 1,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "I just added this lint check \u2014 prove it can actually fail.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Did this test go red first?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "This CI gate has never failed once. Is it checking anything?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Make sure the new assertion actually catches a broken input.",
+    "should_trigger": true,
+    "trigger_rate": 0.5,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Red before green on this check, please.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "I wrote a pre-commit gate for secrets; show me it fires.",
+    "should_trigger": true,
+    "trigger_rate": 0.5,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The query came back empty \u2014 is that a real negative?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "This test is failing, help me debug it.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Write a unit test for the parser.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Review this pull request diff for bugs.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The check passed \u2014 can I trust that pass?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Is the change actually live after the merge?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   }
+  ]
+ }
+}

@@ -1,0 +1,9 @@
+{
+ "instrument": "FAILURE",
+ "control_query": "Write a tl;dr of the outage root cause that I can paste into the incident Slack thread.",
+ "control_runs": [
+  false,
+  false
+ ],
+ "note": "control did not trigger \u2014 results would be meaningless"
+}

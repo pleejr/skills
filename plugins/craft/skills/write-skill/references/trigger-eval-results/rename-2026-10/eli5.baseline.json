@@ -1,0 +1,101 @@
+{
+ "skill": "craft:eli5",
+ "renamed_from": null,
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 12,
+   "scored": 12,
+   "passed": 11,
+   "failed": 1,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "ELI5 how DNS works.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Explain Kubernetes to me like I'm not an engineer.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "In plain English, what does this error mean?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "Give me an analogy for how TLS handshakes work.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "How would I explain eventual consistency to my manager who doesn't code?",
+    "should_trigger": true,
+    "trigger_rate": 0.5,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "I don't have the background for this \u2014 what is a mutex, really?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Write a tl;dr of this incident for the team channel.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Quiz me on how DNS works to see if I understand it.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Write the README for this library.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Critically review this design doc.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Shorten this explanation; I'm an expert and short on time.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "What is 17 times 23?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   }
+  ]
+ }
+}

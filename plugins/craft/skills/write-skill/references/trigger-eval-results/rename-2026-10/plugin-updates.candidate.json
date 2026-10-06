@@ -1,0 +1,94 @@
+{
+ "skill": "plugin-updates:check-plugin-updates",
+ "renamed_from": "plugin-updates:plugin-updates",
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 11,
+   "scored": 11,
+   "passed": 11,
+   "failed": 0,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "Are my plugins up to date?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The banner says 2 plugins are outdated.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Check for plugin updates.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Which plugins are behind?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Update my plugins.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Install the github plugin.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Is the wiki engine current in my vault?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Update my npm packages.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Write a new plugin.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Add a marketplace.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Update the README.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   }
+  ]
+ }
+}

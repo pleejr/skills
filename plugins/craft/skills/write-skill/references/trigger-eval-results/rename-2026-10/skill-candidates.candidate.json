@@ -1,0 +1,101 @@
+{
+ "skill": "wiki-engine:mine",
+ "renamed_from": "wiki-engine:skill-candidates",
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 12,
+   "scored": 12,
+   "passed": 12,
+   "failed": 0,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "Mine the vault for skill candidates.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Have I done this enough times that it should be a skill?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "What procedures do I keep repeating that I never turned into skills?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Find the skills hiding in my notes.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Look back over the last month of memory notes \u2014 anything I do the same way every time?",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Catch up on the skills I never wrote.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Write a skill for releasing the engine.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Why isn't my skill triggering?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Wrap up this session and distill the lessons.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Load the context for this repo from the wiki.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Review this SKILL.md for problems.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Sort these Terraform variables.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   }
+  ]
+ }
+}

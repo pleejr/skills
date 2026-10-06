@@ -1,0 +1,54 @@
+[
+ {
+  "query": "I lost my laptop \u2014 restore my Claude Code setup on the new one.",
+  "should_trigger": true
+ },
+ {
+  "query": "Set up my new machine with my Claude settings.",
+  "should_trigger": true
+ },
+ {
+  "query": "Rebuild this machine's Claude config from the snapshot.",
+  "should_trigger": true
+ },
+ {
+  "query": "Did the restore actually work? Verify it.",
+  "should_trigger": true
+ },
+ {
+  "query": "After the plugin update every skill loads twice \u2014 read the machine back.",
+  "should_trigger": true
+ },
+ {
+  "query": "Cold start on a replacement laptop.",
+  "should_trigger": true
+ },
+ {
+  "query": "Back up my Claude Code config.",
+  "should_trigger": false
+ },
+ {
+  "query": "Snapshot my settings.",
+  "should_trigger": false
+ },
+ {
+  "query": "Share this output style with my other laptop.",
+  "should_trigger": false
+ },
+ {
+  "query": "Restore this deleted file from git.",
+  "should_trigger": false
+ },
+ {
+  "query": "Update my plugins.",
+  "should_trigger": false
+ },
+ {
+  "query": "Restore my Time Machine backup.",
+  "should_trigger": false
+ },
+ {
+  "query": "Install the status line.",
+  "should_trigger": false
+ }
+]

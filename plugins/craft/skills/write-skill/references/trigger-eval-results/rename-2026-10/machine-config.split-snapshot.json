@@ -1,0 +1,108 @@
+{
+ "skill": "machine-config:snapshot",
+ "renamed_from": null,
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 13,
+   "scored": 13,
+   "passed": 12,
+   "failed": 1,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "Back up my Claude Code config.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Snapshot my settings into the config repo.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "My config has drifted from its snapshot \u2014 save it.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Share this output style with my other laptop.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "What happens if this machine dies? Is my config backed up?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "Promote this output style to the shared store.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "I lost my laptop \u2014 restore my Claude Code setup on the new one.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Set up my new machine with my Claude settings.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Did the restore actually work?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Back up my dotfiles and zshrc.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Update my plugins.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Install the status line.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Where should I store my API keys?",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   }
+  ]
+ }
+}

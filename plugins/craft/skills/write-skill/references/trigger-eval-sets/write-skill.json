@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Write a skill for sorting imports.",
+  "should_trigger": true
+ },
+ {
+  "query": "Turn this procedure into a skill.",
+  "should_trigger": true
+ },
+ {
+  "query": "Why isn't my skill triggering?",
+  "should_trigger": true
+ },
+ {
+  "query": "This skill fires when it shouldn't \u2014 fix the description.",
+  "should_trigger": true
+ },
+ {
+  "query": "Review this SKILL.md.",
+  "should_trigger": true
+ },
+ {
+  "query": "Rename this skill without breaking its triggering.",
+  "should_trigger": true
+ },
+ {
+  "query": "Mine my notes for procedures worth turning into skills.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a lifecycle hook that blocks force pushes.",
+  "should_trigger": false
+ },
+ {
+  "query": "Critically review this architecture doc.",
+  "should_trigger": false
+ },
+ {
+  "query": "Install the statusline plugin.",
+  "should_trigger": false
+ },
+ {
+  "query": "Write a bash script that renames files.",
+  "should_trigger": false
+ },
+ {
+  "query": "What skills do I have installed?",
+  "should_trigger": false
+ }
+]

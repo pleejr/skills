@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Install the status line from the plugin.",
+  "should_trigger": true
+ },
+ {
+  "query": "My status line is blank.",
+  "should_trigger": true
+ },
+ {
+  "query": "Why is there no context percentage in my status bar?",
+  "should_trigger": true
+ },
+ {
+  "query": "What does the spinner in the status line mean?",
+  "should_trigger": true
+ },
+ {
+  "query": "Put my old status line back.",
+  "should_trigger": true
+ },
+ {
+  "query": "The idle timer in the status line is stuck.",
+  "should_trigger": true
+ },
+ {
+  "query": "Back up my Claude settings.",
+  "should_trigger": false
+ },
+ {
+  "query": "Update my plugins.",
+  "should_trigger": false
+ },
+ {
+  "query": "Change my terminal prompt in zsh.",
+  "should_trigger": false
+ },
+ {
+  "query": "Name this herdr space.",
+  "should_trigger": false
+ },
+ {
+  "query": "Change the theme.",
+  "should_trigger": false
+ },
+ {
+  "query": "Show me git status.",
+  "should_trigger": false
+ }
+]

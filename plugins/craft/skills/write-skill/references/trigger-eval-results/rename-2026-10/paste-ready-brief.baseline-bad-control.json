@@ -1,0 +1,9 @@
+{
+ "instrument": "FAILURE",
+ "control_query": "Write me a tl;dr I can paste into Slack about what we found.",
+ "control_runs": [
+  false,
+  false
+ ],
+ "note": "control did not trigger \u2014 results would be meaningless"
+}

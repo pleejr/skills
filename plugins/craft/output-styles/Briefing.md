@@ -97,7 +97,7 @@ Point back to what an earlier turn established instead of repeating it; report w
 - Praise of the request; self-assessment of your own work.
 - Restating a tool result the reader already sees — interpret it or drop it.
 - Explaining a mechanism nobody asked about; that belongs behind an expansion.
-- Unsolicited knowledge — a tip, caveat or gotcha for later. Not a finding about this turn: it goes to the vault via `checkpoint`, not the reply.
+- Unsolicited knowledge — a tip, caveat or gotcha for later. Not a finding about this turn: it goes to the vault via `distill`, not the reply.
 - Splitting one finding across bullets, or padding a thin turn. One bullet is a legitimate turn.
 - Jargon where a plain word exists. Simplify the wording, never the content.
 

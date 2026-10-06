@@ -1,0 +1,101 @@
+{
+ "skill": "statusline:configure-statusline",
+ "renamed_from": "statusline:statusline",
+ "description_source": "installed",
+ "instrument": "OK (positive control triggered)",
+ "prompt_mode": {
+  "summary": {
+   "total": 12,
+   "scored": 12,
+   "passed": 9,
+   "failed": 3,
+   "unscorable": 0
+  },
+  "results": [
+   {
+    "query": "Install the status line from the plugin.",
+    "should_trigger": true,
+    "trigger_rate": 1.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "My status line is blank.",
+    "should_trigger": true,
+    "trigger_rate": 0.5,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Why is there no context percentage in my status bar?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "What does the spinner in the status line mean?",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "Put my old status line back.",
+    "should_trigger": true,
+    "trigger_rate": 0.5,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "The idle timer in the status line is stuck.",
+    "should_trigger": true,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": false
+   },
+   {
+    "query": "Back up my Claude settings.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Update my plugins.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Change my terminal prompt in zsh.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Name this herdr space.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Change the theme.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   },
+   {
+    "query": "Show me git status.",
+    "should_trigger": false,
+    "trigger_rate": 0.0,
+    "runs_failed": 0,
+    "pass": true
+   }
+  ]
+ }
+}

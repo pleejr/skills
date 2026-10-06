@@ -1,0 +1,50 @@
+[
+ {
+  "query": "What permissions does this role actually need?",
+  "should_trigger": true
+ },
+ {
+  "query": "Narrow this IAM policy to least privilege.",
+  "should_trigger": true
+ },
+ {
+  "query": "Is PowerUser too much for this deploy pipeline?",
+  "should_trigger": true
+ },
+ {
+  "query": "Which repos does this GitHub App really need access to?",
+  "should_trigger": true
+ },
+ {
+  "query": "Right-size the access for the reporting service account.",
+  "should_trigger": true
+ },
+ {
+  "query": "Can we shave this permission set down safely?",
+  "should_trigger": true
+ },
+ {
+  "query": "I added the grant and they still get 403.",
+  "should_trigger": false
+ },
+ {
+  "query": "There's a token in this config file \u2014 what can it reach?",
+  "should_trigger": false
+ },
+ {
+  "query": "Should I apply this Terraform plan that changes the role?",
+  "should_trigger": false
+ },
+ {
+  "query": "Review this security design doc.",
+  "should_trigger": false
+ },
+ {
+  "query": "Explain what IAM is.",
+  "should_trigger": false
+ },
+ {
+  "query": "Create an S3 bucket.",
+  "should_trigger": false
+ }
+]

@@ -15,21 +15,21 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | [`audit-the-instrument`](plugins/craft/skills/audit-the-instrument/SKILL.md) | Audit a diagnostic that already returned a verdict — did the harness run, did the input parse, what population did it cover, when and against which tree did it run, can the result discriminate — before that verdict is acted on. |
 | [`design-the-probe-before-you-run-it`](plugins/craft/skills/design-the-probe-before-you-run-it/SKILL.md) | Classify a probe before running it — mutation, layer, observability, pollution, fallback, emittable positive, baseline — and name the control that makes its answer discriminating. |
 | [`eli5`](plugins/craft/skills/eli5/SKILL.md) | Plain-language explanation with a load-bearing analogy — mechanism in one sentence, analogy mapped part-by-part, where it breaks down, and the real vocabulary — with guards against decorative analogies, jargon-swapping, and unflagged simplifications. |
-| [`hook-authoring`](plugins/craft/skills/hook-authoring/SKILL.md) | Author a Claude Code lifecycle hook that actually fires — capture a real payload and feed it on stdin, pick the event by what it can see, read the matcher as text, prove both the catch and the refusal, and route output by who can act on it. |
 | [`paste-ready-brief`](plugins/craft/skills/paste-ready-brief/SKILL.md) | Author a paste-ready message for a human thread at the length asked for — one-line tl;dr, short brief, or long form — fenced, unwrapped, with inferences marked and secrets withheld. |
 | [`probe-understanding`](plugins/craft/skills/probe-understanding/SKILL.md) | Interactive teach-back drill — builds an evidence-sourced rubric, offers a lesson per sub-area that is by construction sufficient to score full marks, then asks closed-book questions one at a time and scores each sub-area 0-5 on mechanism, why, failure modes and boundaries with a citation behind every grade, looping hints then explanations into fresh rounds until the score is perfect or the operator stops. |
 | [`scrutinize`](plugins/craft/skills/scrutinize/SKILL.md) | Rigorous critical review of any artifact (code, design, IaC, config, API, plan) — surfaces missed bugs, design flaws, anti-patterns, best-practice deviations, observability gaps, short-sightedness, security vulns, redundancy, and operational risk as ranked, evidence-backed findings. |
-| [`skill-author`](plugins/craft/skills/skill-author/SKILL.md) | House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator. |
 | [`sort-imports`](plugins/craft/skills/sort-imports/SKILL.md) | Sorts and groups import statements using the project's configured tool, falling back to a conventions-based manual sort that preserves side-effect ordering. |
 | [`verify-the-change-is-in-effect`](plugins/craft/skills/verify-the-change-is-in-effect/SKILL.md) | Confirm an accepted change is actually in effect — read the value back from the running system rather than the acknowledgment, and name the deferral mechanism (maintenance window, unpromoted version, resolved workflow SHA, unloaded config, in-memory credential) that could be holding it. |
+| [`write-hook`](plugins/craft/skills/write-hook/SKILL.md) | Author a Claude Code lifecycle hook that actually fires — capture a real payload and feed it on stdin, pick the event by what it can see, read the matcher as text, prove both the catch and the refusal, and route output by who can act on it. |
+| [`write-skill`](plugins/craft/skills/write-skill/SKILL.md) | House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator. |
 
 ### infra
 
 | Skill | What it does |
 |-------|--------------|
-| [`blast-radius-before-a-shared-change`](plugins/infra/skills/blast-radius-before-a-shared-change/SKILL.md) | Enumerate the live consumers of a shared thing before changing it — sweep the resource type rather than the module source, count root-module instantiations per environment, ask what the feature's absence renders as, and check whether the pin floats. |
 | [`diagnose-denial`](plugins/infra/skills/diagnose-denial/SKILL.md) | Walk an access path gate by gate when something is refused — identity, group/tag, network ACL, service ACL, host config, resource policy, in-service credential — and report which layer refused and which went unchecked. |
 | [`handle-a-found-credential`](plugins/infra/skills/handle-a-found-credential/SKILL.md) | Bound the exposure when a live credential turns up where it should not be — enumerate at the identity, read the scopes as the blast radius, capture evidence before revoking, separate credential from standing, and redact by region so the report is not the second leak. |
+| [`map-blast-radius`](plugins/infra/skills/map-blast-radius/SKILL.md) | Enumerate the live consumers of a shared thing before changing it — sweep the resource type rather than the module source, count root-module instantiations per environment, ask what the feature's absence renders as, and check whether the pin floats. |
 | [`read-the-plan-before-the-apply`](plugins/infra/skills/read-the-plan-before-the-apply/SKILL.md) | Gate a Terraform apply by diffing the plan's resource addresses — and each update's before/after attributes — against an expectation stated before the plan was opened. Any unexplained address is disqualifying. |
 | [`safe-tfsort`](plugins/infra/skills/safe-tfsort/SKILL.md) | Wraps `tfsort` to alphabetically sort Terraform `variable`/`output` blocks without ever dropping comments or commented-out blocks (bare tfsort ≥0.7.1 silently loses them). |
 | [`scope-a-grant-from-observed-use`](plugins/infra/skills/scope-a-grant-from-observed-use/SKILL.md) | Derive a least-privilege grant from what a principal is observed to do — not from what it holds or what was requested — and name explicitly where the evidence of use is blind. |
@@ -45,20 +45,21 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 
 | Skill | What it does |
 |-------|--------------|
-| [`herdr-name`](plugins/herdr/skills/herdr-name/SKILL.md) | On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call. |
+| [`name`](plugins/herdr/skills/name/SKILL.md) | On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call. |
 | [`peer-sessions`](plugins/herdr/skills/peer-sessions/SKILL.md) | Spawn a fleet of named interactive Claude Code sessions into herdr panes, gate readiness on the messaging socket, brief each peer over native SendMessage, harvest the work before it is lost, and hand back a teardown. |
 
 ### machine-config
 
 | Skill | What it does |
 |-------|--------------|
-| [`machine-config`](plugins/machine-config/skills/machine-config/SKILL.md) | Make a machine's Claude Code config recoverable — autosaves ~/.claude to a git repo at session end, restores onto a replacement machine, and shares boundary-free preferences (output styles included) across machines from two stores, one of which crosses the work/personal boundary; secret-scanned, never spawns claude. |
+| [`restore`](plugins/machine-config/skills/restore/SKILL.md) | Rebuild a machine's Claude Code config from its snapshot — infer the source, rewrite marketplaces to remotes, print what only a human can do, then verify each wired component by asking it; also reads any converge back. |
+| [`snapshot`](plugins/machine-config/skills/snapshot/SKILL.md) | Keep a machine's Claude Code config recoverable — autosaves ~/.claude to a git repo at session end and shares boundary-free preferences (output styles included) across machines from two stores, one of which crosses the work/personal boundary; secret-scanned, never spawns claude. |
 
 ### plugin-updates
 
 | Skill | What it does |
 |-------|--------------|
-| [`plugin-updates`](plugins/plugin-updates/skills/plugin-updates/SKILL.md) | Session-start report of every installed plugin behind its marketplace's latest release — any marketplace, rate-limited lookup, self-clearing — with an offer to update and a reload instruction; never runs claude from the hook. |
+| [`check-plugin-updates`](plugins/plugin-updates/skills/check-plugin-updates/SKILL.md) | Session-start report of every installed plugin behind its marketplace's latest release — any marketplace, rate-limited lookup, self-clearing — with an offer to update and a reload instruction; never runs claude from the hook. |
 
 ### statusline
 
@@ -73,9 +74,8 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 |---|---|---|
 | `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
 | `infra` | Terraform, access and credential skills | — |
-| `dev` | sort-imports: orders imports with the project's own configured tool | — |
-| `herdr` | herdr-name, peer-sessions | SessionStart |
-| `machine-config` | machine-config | SessionStart, SessionEnd |
+| `herdr` | name, spawn | SessionStart |
+| `machine-config` | snapshot, restore | SessionStart, SessionEnd |
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
 | `statusline` | statusline: the bar under the prompt — model, directory, context bands, 5h/7d usage, a work spinner and the idle timer | SessionStart, Stop, UserPromptSubmit, SessionEnd |
 
@@ -130,7 +130,7 @@ makes it the only store that crosses the gap.
 
 ```bash
 # publish a style you wrote on this machine (does not commit; prints the commands)
-MC="<skills clone>/plugins/machine-config/skills/machine-config/scripts"
+MC="<skills clone>/plugins/machine-config/skills/snapshot/scripts"
 "$MC/apply.sh" --promote Briefing
 # ...or send it to the per-boundary config repo instead
 "$MC/apply.sh" --promote Briefing --to config
@@ -147,7 +147,7 @@ Machines set up before the plugins linked skills into `~/.claude/skills/` with `
 
 1. Add the marketplace and install the plugins (see [Install](#install)).
 2. **Remove the old links and the sync:** every symlink in `~/.claude/skills/` pointing into the clone, `~/.claude/session-checks.d/pleejr-skills.sh`, and `~/.claude/skill-tags`.
-3. **Legacy hooks:** `plugins/machine-config/skills/machine-config/scripts/install.sh` removes machine-config's SessionEnd hook and both `session-checks.d` drop-ins (with the plugin enabled it unwires instead of wiring). Delete a `settings.json` SessionStart entry running `herdr-name.sh session-start` by hand.
+3. **Legacy hooks:** `plugins/machine-config/skills/snapshot/scripts/install.sh` removes machine-config's SessionEnd hook and both `session-checks.d` drop-ins (with the plugin enabled it unwires instead of wiring). Delete a `settings.json` SessionStart entry running `herdr-name.sh session-start` by hand.
 4. **Output styles:** `apply.sh --styles-only` (same directory) removes the copies it installed; rename `outputStyle` wherever it is set, from `Briefing` to `craft:Briefing`. A stale name falls back to the default style without a warning from Claude Code.
 5. **Restart, then check:** each `<plugin>:` skill is listed once, `/output-style` lists the `craft:` styles once, and `scripts/verify.sh` reports every enabled plugin's hooks healthy.
 

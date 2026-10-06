@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Spawn three Claude sessions to work on these repos in parallel.",
+  "should_trigger": true
+ },
+ {
+  "query": "Start a peer session in the homelab repo and send it this brief.",
+  "should_trigger": true
+ },
+ {
+  "query": "Send this to my other session.",
+  "should_trigger": true
+ },
+ {
+  "query": "Which peer sessions are live right now?",
+  "should_trigger": true
+ },
+ {
+  "query": "Collect the fleet's work and tear it down.",
+  "should_trigger": true
+ },
+ {
+  "query": "Run these three migrations in separate sessions side by side.",
+  "should_trigger": true
+ },
+ {
+  "query": "Use a subagent to search the codebase for this function.",
+  "should_trigger": false
+ },
+ {
+  "query": "Run this test command in the background.",
+  "should_trigger": false
+ },
+ {
+  "query": "Name this space after what we're doing.",
+  "should_trigger": false
+ },
+ {
+  "query": "Split this pane in herdr.",
+  "should_trigger": false
+ },
+ {
+  "query": "Run these two greps in parallel.",
+  "should_trigger": false
+ },
+ {
+  "query": "Schedule a cloud agent to run nightly.",
+  "should_trigger": false
+ }
+]

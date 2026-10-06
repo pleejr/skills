@@ -1,0 +1,9 @@
+{
+ "instrument": "FAILURE",
+ "control_query": "I'm about to run a command to confirm the package hold took. How should I verify it?",
+ "control_runs": [
+  false,
+  false
+ ],
+ "note": "control did not trigger \u2014 results would be meaningless"
+}

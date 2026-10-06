@@ -1,0 +1,50 @@
+[
+ {
+  "query": "Mine the vault for skill candidates.",
+  "should_trigger": true
+ },
+ {
+  "query": "Have I done this enough times that it should be a skill?",
+  "should_trigger": true
+ },
+ {
+  "query": "What procedures do I keep repeating that I never turned into skills?",
+  "should_trigger": true
+ },
+ {
+  "query": "Find the skills hiding in my notes.",
+  "should_trigger": true
+ },
+ {
+  "query": "Look back over the last month of memory notes \u2014 anything I do the same way every time?",
+  "should_trigger": true
+ },
+ {
+  "query": "Catch up on the skills I never wrote.",
+  "should_trigger": true
+ },
+ {
+  "query": "Write a skill for releasing the engine.",
+  "should_trigger": false
+ },
+ {
+  "query": "Why isn't my skill triggering?",
+  "should_trigger": false
+ },
+ {
+  "query": "Wrap up this session and distill the lessons.",
+  "should_trigger": false
+ },
+ {
+  "query": "Load the context for this repo from the wiki.",
+  "should_trigger": false
+ },
+ {
+  "query": "Review this SKILL.md for problems.",
+  "should_trigger": false
+ },
+ {
+  "query": "Sort these Terraform variables.",
+  "should_trigger": false
+ }
+]

@@ -2,7 +2,7 @@
 
 Read this when you pick a `spawn-fleet.py` placement, need a flag `SKILL.md` does not name, write a teardown by hand, or need a layout the script does not wrap: an unusual layout, a recording, a fork of an existing conversation, one worktree per peer, or a herdr capability it does not expose.
 
-`$PS` below is `$(readlink ~/.claude/skills/peer-sessions)/scripts` — the checkout path differs per machine.
+`$PS` below is `$(readlink ~/.claude/skills/spawn)/scripts` — the checkout path differs per machine.
 
 ## Every `spawn-fleet.py` flag
 
