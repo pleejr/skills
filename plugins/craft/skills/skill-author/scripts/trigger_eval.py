@@ -11,7 +11,7 @@ fails to trigger is reported as INSTRUMENT FAILURE, never as a description resul
                   and name the skill outright. `controlled` (a further probe, no Skill
                   call) is a pass.
 """
-import argparse, json, os, pathlib, shutil, subprocess, sys, tempfile
+import argparse, json, os, pathlib, re, shutil, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 SKILLS = pathlib.Path(os.path.expanduser("~/.claude/skills"))
@@ -295,6 +295,8 @@ def main():
     ap.add_argument("--eval-set")
     ap.add_argument("--mid-task-set", help="measure against mid-task context instead of user queries")
     ap.add_argument("--description", help="candidate description to score instead of the installed one")
+    ap.add_argument("--as-name", help="candidate NAME to score: the skill is parked and re-installed under this "
+                                      "name for the run, so only the name (and --description, if given) varies")
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--runs", type=int, default=2)
     ap.add_argument("--workers", type=int, default=6)
@@ -316,17 +318,26 @@ def main():
         sys.exit(f"trigger_eval: no SKILL.md at {live}")
     parked = None
     tmpdir = tempfile.mkdtemp(prefix="trigger-eval-")
+    target = a.skill
+    if a.as_name:
+        target = (a.skill.split(":")[0] + ":" if ":" in a.skill else "") + a.as_name
+    staged = live.parent / a.as_name if a.as_name else live
+    if a.as_name and staged.exists():
+        sys.exit(f"trigger_eval: {staged} already exists — a candidate name must be unused")
     try:
-        if a.description:
-            body = (live / "SKILL.md").read_text().split("---", 2)[2]
+        if a.description or a.as_name:
+            fm, body = (live / "SKILL.md").read_text().split("---", 2)[1:]
             parked = pathlib.Path(tmpdir) / "parked"
             shutil.move(str(live), str(parked))
-            live.mkdir(parents=True)
-            (live / "SKILL.md").write_text(
-                f"---\nname: {a.skill.split(':')[-1]}\ndescription: {a.description}\n---{body}")
+            # Copy the whole skill, not just SKILL.md, so a body that names its own
+            # scripts still resolves under the candidate name.
+            shutil.copytree(str(parked), str(staged))
+            desc = a.description or re.search(r"(?m)^description: (.*)$", fm).group(1)
+            (staged / "SKILL.md").write_text(
+                f"---\nname: {target.split(':')[-1]}\ndescription: {desc}\n---{body}")
 
         cwd = tempfile.mkdtemp(prefix="trigger-eval-cwd-")
-        out = {"skill": a.skill,
+        out = {"skill": target, "renamed_from": a.skill if a.as_name else None,
                "description_source": "candidate" if a.description else "installed"}
 
         if mid_set:
@@ -343,7 +354,7 @@ def main():
                                   "note": "mid-task set has no item marked detector_control:true — "
                                           "without it an all-negative result cannot be told from a blind harness"}, indent=1))
                 return 2
-            dres = [run_mid_task(det, a.skill, a.model, a.timeout) for _ in range(2)]
+            dres = [run_mid_task(det, target, a.model, a.timeout) for _ in range(2)]
             if not any(r["outcome"] in ("routed", "routed-early") for r in dres):
                 print(json.dumps({"instrument": "FAILURE", "mode": "mid-task",
                                   "detector_control": det["task"][:200],
@@ -354,7 +365,7 @@ def main():
                 return 2
             out["mid_task_instrument"] = "OK (detector control routed)"
             scoreable = [i for i in mid_set if not i.get("detector_control")]
-            mres = evaluate_mid_task(a.skill, scoreable, a.model, a.runs, a.workers, a.timeout)
+            mres = evaluate_mid_task(target, scoreable, a.model, a.runs, a.workers, a.timeout)
             ms = [r for r in mres if r["pass"] is not None]
             out["mid_task"] = {
                 "summary": {"total": len(mres), "scored": len(ms),
@@ -368,13 +379,13 @@ def main():
             }
 
         if eval_set:
-            ctrl = [run_query(control, a.skill, a.model, a.timeout, cwd) for _ in range(2)]
+            ctrl = [run_query(control, target, a.model, a.timeout, cwd) for _ in range(2)]
             if not any(c is True for c in ctrl):
                 print(json.dumps({"instrument": "FAILURE", "control_query": control,
                                   "control_runs": ctrl,
                                   "note": "control did not trigger — results would be meaningless"}, indent=1))
                 return 2
-            results = evaluate(a.skill, eval_set, a.model, a.runs, a.workers, a.timeout, cwd)
+            results = evaluate(target, eval_set, a.model, a.runs, a.workers, a.timeout, cwd)
             scored = [r for r in results if r["pass"] is not None]
             out["instrument"] = "OK (positive control triggered)"
             out["prompt_mode"] = {
@@ -388,7 +399,7 @@ def main():
         return 0
     finally:
         if parked:
-            shutil.rmtree(live, ignore_errors=True)
+            shutil.rmtree(staged, ignore_errors=True)
             shutil.move(str(parked), str(live))
         shutil.rmtree(tmpdir, ignore_errors=True)
 
