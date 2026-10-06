@@ -208,13 +208,20 @@ say so plainly: the failure mode is silent until the day it isn't.
 **Never write another machine's paths into a handoff — resolve them.** This skill's whole
 premise is that machines differ, so a command block naming *your* checkout is untested prose on
 theirs. Two clones move: the config repo, which is why `~/.claude/machine-config-repo` exists and
-is never guessed; and this skills checkout itself, whose location the target machine already
-records in the symlink that installed it:
+is never guessed; and this plugin's install directory, which the target machine already records
+in `installed_plugins.json`:
 
 ```sh
-MC="$(readlink ~/.claude/skills/machine-config)/scripts"   # the symlink IS the pointer
+MC="$(jq -r 'first(.plugins | to_entries[] | select(.key | startswith("machine-config@"))
+  | .value[0].installPath) // empty' ~/.claude/plugins/installed_plugins.json)/skills/machine-config/scripts"
 "$MC/apply.sh" --check
 ```
+
+Plugin delivery creates no `~/.claude/skills/machine-config` symlink, so the old `readlink`
+resolver printed an empty path. Do not search the plugin cache either: it keeps every past
+release, and a hash-named directory says nothing about which is current. The skill's own
+"Base directory" header names the release *this session loaded*, which after a mid-session
+`claude plugin update` is older than `installPath`.
 
 Verify a resolver by running it before you hand it over. The scripts resolve their own siblings
 via `BASH_SOURCE`, so only prose gets this wrong — and a handoff naming one machine's checkout path
