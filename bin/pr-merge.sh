@@ -146,12 +146,21 @@ if [ "$DRY" = 0 ]; then
   say "confirmed MERGED"
 fi
 
+# API-only path: no checkout of $SLUG here, so the remote head branch is deleted through
+# the API rather than through a local remote. Only a same-repo head is touched; a fork's
+# branch is not ours to delete. A failed delete is a warning, not an error: the merge
+# itself is already confirmed above.
 if [ "$LOCAL" = 0 ]; then
-  if [ "$OFFLINE" = 1 ]; then
-  say "done with warnings — merged, local cleanup finished, network steps skipped — $(jq -r .url <<<"$META")"
-else
+  if [ "$(lower "$HEAD_SLUG")" != "$(lower "$SLUG")" ]; then
+    say "head $HEAD_SLUG:$HEAD is a fork — leaving its branch alone"
+  elif ! gh api "repos/$SLUG/git/ref/heads/$HEAD" >/dev/null 2>&1; then
+    say "remote branch $HEAD already gone"
+  elif run gh api -X DELETE "repos/$SLUG/git/refs/heads/$HEAD" >/dev/null; then
+    say "deleted remote branch $HEAD"
+  else
+    say "WARNING: could not delete remote branch $HEAD — re-run, or: gh api -X DELETE repos/$SLUG/git/refs/heads/$HEAD"
+  fi
   say "done — $(jq -r .url <<<"$META")"
-fi
   exit 0
 fi
 
