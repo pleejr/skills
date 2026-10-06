@@ -74,10 +74,11 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 |---|---|---|
 | `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
 | `infra` | Terraform, access and credential skills | — |
-| `herdr` | name, spawn | SessionStart |
+| `herdr` | name, peer-sessions | SessionStart |
 | `machine-config` | snapshot, restore | SessionStart, SessionEnd |
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
 | `statusline` | statusline: the bar under the prompt — model, directory, context bands, 5h/7d usage, a work spinner and the idle timer | SessionStart, Stop, UserPromptSubmit, SessionEnd |
+| `skill-name-guard` | no skills: a hook that warns when a `SKILL.md` is written with a name that does not start with an approved verb | PostToolUse |
 
 A plugin that carries a hook wires it through its own `hooks/hooks.json`, so enabling the plugin is the wiring; nothing goes in `settings.json` by hand.
 

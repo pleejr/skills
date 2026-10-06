@@ -57,6 +57,12 @@
       "description": "A status line under the prompt: model, directory, context bands, the 5h/7d subscription windows, a spinner while shell work runs, and an idle timer; wired by its own script.",
       "source": "./plugins/statusline",
       "category": "productivity"
+    },
+    {
+      "name": "skill-name-guard",
+      "description": "Warns when a SKILL.md is written whose name does not start with an approved verb, so new skills follow the verb-led pattern in every repo and session. Advisory; never blocks.",
+      "source": "./plugins/skill-name-guard",
+      "category": "development"
     }
   ]
 }

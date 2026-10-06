@@ -1,0 +1,10 @@
+{
+  "name": "skill-name-guard",
+  "description": "Warns when a SKILL.md is written whose name does not start with an approved verb, so new skills follow the verb-led pattern in every repo and session. Advisory: never blocks a write.",
+  "author": {
+    "name": "pleejr",
+    "email": "preston@pleejr.com"
+  },
+  "homepage": "https://github.com/pleejr/skills",
+  "version": "1.0.0"
+}
