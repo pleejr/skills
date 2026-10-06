@@ -147,17 +147,35 @@ if [ "$DRY" = 0 ]; then
 fi
 
 if [ "$LOCAL" = 0 ]; then
+  if [ "$OFFLINE" = 1 ]; then
+  say "done with warnings — merged, local cleanup finished, network steps skipped — $(jq -r .url <<<"$META")"
+else
   say "done — $(jq -r .url <<<"$META")"
+fi
   exit 0
 fi
 
 # --- local cleanup, each step guarded by the state it expects -------------------------
 
-run git -C "$PRIMARY" fetch origin --prune --quiet
+# The merge is done by now, so a network failure from here on must not abort the run:
+# under `set -e` a failed fetch (a GitHub SSH blip answering `Permission denied
+# (publickey)`) used to exit before the worktree and branch cleanup, leaving both behind
+# with nothing said. Only the remote delete and the fast-forward need the network; the
+# rest is local and still runs. Every skipped step is named in the output.
+OFFLINE=0
+if ! run git -C "$PRIMARY" fetch origin --prune --quiet; then
+  OFFLINE=1
+  say "WARNING: fetch failed after the merge — skipping the remote-branch delete and the fast-forward"
+fi
 
-if git -C "$PRIMARY" ls-remote --exit-code --heads origin "$HEAD" >/dev/null 2>&1; then
-  run git -C "$PRIMARY" push origin --delete "$HEAD"
-  say "deleted remote branch $HEAD"
+if [ "$OFFLINE" = 1 ]; then
+  say "remote branch $HEAD not checked — re-run to delete it, or: git -C $PRIMARY push origin --delete $HEAD"
+elif git -C "$PRIMARY" ls-remote --exit-code --heads origin "$HEAD" >/dev/null 2>&1; then
+  if run git -C "$PRIMARY" push origin --delete "$HEAD"; then
+    say "deleted remote branch $HEAD"
+  else
+    say "WARNING: could not delete remote branch $HEAD — delete it by hand"
+  fi
 else
   say "remote branch $HEAD already gone"
 fi
@@ -233,7 +251,9 @@ fi
 
 # Fast-forward the primary checkout only when it is sitting on the base branch and
 # clean. Anything else is someone else's working state, not this script's to move.
-if [ "$CUR" != "$BASE" ]; then
+if [ "$OFFLINE" = 1 ]; then
+  say "primary checkout not fast-forwarded (fetch failed) — run: git -C $PRIMARY pull --ff-only"
+elif [ "$CUR" != "$BASE" ]; then
   say "primary checkout is on $CUR, not $BASE — left alone (fetched, so origin/$BASE is current)"
 elif [ -n "$(git -C "$PRIMARY" status --porcelain)" ]; then
   say "primary checkout is dirty — left alone; run: git -C $PRIMARY merge --ff-only origin/$BASE"
@@ -242,4 +262,8 @@ else
   say "fast-forwarded $PRIMARY to origin/$BASE"
 fi
 
-say "done — $(jq -r .url <<<"$META")"
+if [ "$OFFLINE" = 1 ]; then
+  say "done with warnings — merged, local cleanup finished, network steps skipped — $(jq -r .url <<<"$META")"
+else
+  say "done — $(jq -r .url <<<"$META")"
+fi
