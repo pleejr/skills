@@ -1,7 +1,7 @@
 ---
 name: write-skill
 description: This skill should be used when authoring or maintaining a Claude Code skill in this repo — writing a new SKILL.md, refining a skill's description so it triggers reliably, or diagnosing why a skill under- or over-triggers. It encodes this repo's house conventions (frontmatter shape, the explicit `Triggers:` line, the disambiguation clause) and treats the description as the routing surface that determines contextual invocation. Delegates the rigorous eval / benchmark / description-optimization loop to Anthropic's bundled `skill-creator`. Triggers: "write a skill", "create a skill", "add a new skill", "turn this into a skill", "improve this skill's description", "why isn't my skill triggering", "this skill fires when it shouldn't", "make this skill trigger reliably", "review this SKILL.md", "rename this skill", "will renaming this skill break triggering". Distinct from `scrutinize` (general artifact critique) — this is specifically about skill construction and trigger design.
-version: 1.2.0
+version: 1.3.0
 summary: House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator.
 ---
 
@@ -54,6 +54,7 @@ summary: <one sentence>     # feeds the auto-generated README table — keep it 
 
 - `summary` is consumed by `bin/gen-readme-skills.sh` between the README sentinels — regenerate after any add/rename (§6).
 - Some older skills use `status: active` + `updated: <date>` instead of `version:`; either is accepted, but prefer `version:` for new skills.
+- **The name starts with a verb**: `<verb>` or `<verb>-<object>` (`review-plan`, `map-blast-radius`). The verb says the action; the object keeps the words people type, which is what routes a prompt to the skill, so do not shorten a name past them (§9 measured the loss). The approved verbs are `plugins/skill-name-guard/data/verbs.txt`; the `skill-name-guard` plugin warns when a `SKILL.md` is written without one. No verb fits → add one there as its own change. Names kept on purpose after a measured loss are in `data/exempt.txt`, closed to new skills.
 - No `tags:`. The plugin a skill lives in is its grouping, for install and for the README; a machine that wants fewer skills enables fewer plugins.
 
 ## 4. Body conventions
@@ -119,7 +120,7 @@ The name is routing surface too (§7, `references/trigger-eval.md`), so a rename
 
 ## 10. Checklist
 
-- [ ] `name` matches the directory, kebab-case.
+- [ ] `name` matches the directory, kebab-case, and starts with an approved verb (§3).
 - [ ] Description: third person, what + when + `Triggers:` line + disambiguation + negatives.
 - [ ] Description ≤1400 chars (`wc -c` on the line, folded lines joined).
 - [ ] Overlap check run against existing descriptions (§5).

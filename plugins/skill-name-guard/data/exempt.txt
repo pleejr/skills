@@ -1,0 +1,11 @@
+# Skill names that do not start with an approved verb and are kept on purpose. Each was
+# measured with trigger_eval.py --as-name (2026-10): a verb-led name lost routing because
+# the old name echoes the words people type, or its baseline could not be measured, so a
+# rename could not be validated. This list is closed: a NEW skill does not go here, it
+# gets a verb-led name. Format: name  # reason
+statusline          # manage-statusline 10/12 and configure-statusline 9/12 vs 12/12
+eli5                # explain 0/2 on its control prompt; explain-eli5 8/12 vs 11/12
+safe-tfsort         # sort-tf 0/2 on its control prompt; baseline 11/11
+paste-ready-brief   # control prompt fails under the current name; rename unmeasurable
+peer-sessions       # control prompt fails under the current name; rename unmeasurable
+wiki-context        # control prompt fails under the current name; rename unmeasurable
