@@ -1,7 +1,7 @@
 ---
 name: skill-author
-description: This skill should be used when authoring or maintaining a Claude Code skill in this repo — writing a new SKILL.md, refining a skill's description so it triggers reliably, or diagnosing why a skill under- or over-triggers. It encodes this repo's house conventions (frontmatter shape, the explicit `Triggers:` line, the disambiguation clause) and treats the description as the routing surface that determines contextual invocation. Delegates the rigorous eval / benchmark / description-optimization loop to Anthropic's bundled `skill-creator`. Triggers: "write a skill", "create a skill", "add a new skill", "turn this into a skill", "improve this skill's description", "why isn't my skill triggering", "this skill fires when it shouldn't", "make this skill trigger reliably", "review this SKILL.md". Distinct from `scrutinize` (general artifact critique) — this is specifically about skill construction and trigger design.
-version: 1.1.0
+description: This skill should be used when authoring or maintaining a Claude Code skill in this repo — writing a new SKILL.md, refining a skill's description so it triggers reliably, or diagnosing why a skill under- or over-triggers. It encodes this repo's house conventions (frontmatter shape, the explicit `Triggers:` line, the disambiguation clause) and treats the description as the routing surface that determines contextual invocation. Delegates the rigorous eval / benchmark / description-optimization loop to Anthropic's bundled `skill-creator`. Triggers: "write a skill", "create a skill", "add a new skill", "turn this into a skill", "improve this skill's description", "why isn't my skill triggering", "this skill fires when it shouldn't", "make this skill trigger reliably", "review this SKILL.md", "rename this skill", "will renaming this skill break triggering". Distinct from `scrutinize` (general artifact critique) — this is specifically about skill construction and trigger design.
+version: 1.2.0
 summary: House-style guide for authoring skills in this repo — the description-as-routing-surface formula, frontmatter/body conventions, an overlap check against the existing catalog, and trigger-debugging. Delegates the eval/optimization loop to Anthropic's skill-creator.
 ---
 
@@ -106,7 +106,18 @@ When a skill fired when it shouldn't have, or didn't when it should, the fix is 
 - **Genuinely ambiguous:** two skills legitimately match — give both a mutual disambiguation clause so the boundary is stated from each side.
 - Then **verify with `scripts/trigger_eval.py`** (§7) rather than eyeballing — add the exact prompt that misbehaved to the eval set.
 
-## 9. Checklist
+## 9. Renaming a skill without breaking contextual invocation
+
+The name is routing surface too (§7, `references/trigger-eval.md`), so a rename is a routing change, measured like one. In order:
+
+1. **Baseline under the old name** — `scripts/trigger_eval.py --skill <plugin>:<old> --eval-set …`. No eval set → write one first (§7); a rename with no baseline has nothing to be compared against.
+2. **Score the candidate before moving anything** — same command plus `--as-name <new>`: the harness parks the skill, installs it under the candidate name for the run, and restores it. Ship only if the candidate scores at least the baseline; otherwise strengthen the description (`--description`) or keep the old name.
+3. **Move** — `git mv` the directory (and its `trigger-eval-sets/<old>*.json`), set `name:`.
+4. **Sweep references** — `scripts/rename_sweep.py --map map.json --root <each repo and vault>` reports every hit by class; `--apply` rewrites only the unambiguous ones. Read the `ambiguous` list by hand. The hits that matter most for routing are other skills' **`Distinct from …` clauses**, `CLAUDE.md` and output-style text that tells the model which skill to use, and hook output that names a skill — a stale name there misroutes silently.
+5. **No alias skill.** An alias under the old name is a second description competing for the same prompts. Old names in dated records (logs, changelogs, proposals) stay as written; the sweep leaves them alone.
+6. **Re-measure under the new name** after it is installed, and keep both runs' raw output in `references/trigger-eval-results/`.
+
+## 10. Checklist
 
 - [ ] `name` matches the directory, kebab-case.
 - [ ] Description: third person, what + when + `Triggers:` line + disambiguation + negatives.
