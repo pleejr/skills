@@ -75,26 +75,7 @@ The script holds no judgement — it applies what you give it, fits each field t
 - **The space holds more than one `claude` pane.** A sibling session is live here, and its name stays. The command reports the pane count and changes nothing.
 - **No original label was saved.** The space was never named by this mechanism, so there is nothing to restore to. Guessing a label would be worse than leaving the one the user chose.
 
-A `SessionStart` hook runs `herdr-name.sh session-start`, which resets automatically when a genuinely new session begins. The hook reads the payload's `source` field and acts only on `startup` or `clear` — a `resume` or a `compact` continues work already in progress and keeps its name. You do not need to reset by hand at the end of a session.
-
-**Installed as the `herdr` plugin, the hook ships with it** (`hooks/hooks.json`) and needs no wiring; the script is also on the Bash tool's `PATH` as `name`. The rest of this section applies only to a symlink install.
-
-**The hook is not automatic under a symlink install — wire it once per machine.** Nothing in this skill installs it, and without it a name outlives the session that set it. Add this to the `SessionStart` array in `~/.claude/settings.json`, with the script's physical path (`readlink -f ~/.claude/skills/name/scripts/herdr-name.sh`) — the matcher is `*` because the script itself decides on the payload's `source`:
-
-```json
-{
-  "matcher": "*",
-  "hooks": [
-    {
-      "type": "command",
-      "command": "<physical path>/skills/name/scripts/herdr-name.sh session-start",
-      "timeout": 10
-    }
-  ]
-}
-```
-
-Check it with `jq -e '.hooks.SessionStart[].hooks[] | select(.command | test("herdr-name.sh session-start"))' ~/.claude/settings.json`. The script is deterministic and never spawns `claude`, so it is safe as a lifecycle hook.
+Nothing resets a name automatically: a name persists across new sessions in the space until `reset` runs or the skill renames it.
 
 ## What this skill does not do
 

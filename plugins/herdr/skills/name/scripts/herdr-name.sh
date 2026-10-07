@@ -27,7 +27,6 @@ usage() {
 usage: herdr-name.sh set <LABEL> <TOPIC>   apply a 1-2 word label and a 4-5 word topic
        herdr-name.sh reset                 restore the original label, clear the topic
        herdr-name.sh show                  print current label, topic, saved original
-       herdr-name.sh session-start         hook entry: reset only on a genuinely new session
 EOF
   exit 2
 }
@@ -192,36 +191,11 @@ cmd_show() {
   exit 0
 }
 
-# Hook entry point. Claude Code passes the hook payload on stdin; `source`
-# distinguishes a genuinely new session from reattaching to an existing one.
-# Deciding here rather than with a settings.json matcher keeps the rule in one
-# place we control, and survives a matcher string we cannot verify.
-cmd_session_start() {
-  local src
-  src=$(python3 -c '
-import json, sys
-try:
-    print(json.load(sys.stdin).get("source") or "")
-except Exception:
-    pass
-' 2>/dev/null)
-
-  case "$src" in
-    startup|clear) cmd_reset ;;
-    # An unparseable or absent payload is treated as a new session; say so, since the
-    # failure direction is "reset a resumed session's name".
-    "") printf 'session source missing — treating as startup\n' >&2; cmd_reset ;;
-    # resume / compact continue work already in progress — keep the name.
-    *) printf 'session source %s — name kept\n' "$src"; exit 0 ;;
-  esac
-}
-
 # --- dispatch ---------------------------------------------------------------
 case "${1:-}" in
   set)           require_herdr; shift; [ $# -ge 1 ] || usage; cmd_set "${1:-}" "${2:-}" ;;
   reset)         require_herdr; cmd_reset ;;
   show)          require_herdr; cmd_show ;;
-  session-start) require_herdr; cmd_session_start ;;
   ""|-h|--help)  usage ;;
   *)             usage ;;
 esac
