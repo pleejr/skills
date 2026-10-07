@@ -48,15 +48,15 @@ unpushed() {
 }
 
 # Bounded push: no credential prompt can hang it, and a watchdog kills a stalled network call.
-# Failure is fine — the commits are local, and the next run pushes them.
+# Failure is fine — the commits are local, and the next run pushes them. mc_publish falls back
+# to a pull request when the branch refuses direct pushes, hence the wider default timeout.
 push_now() {
   git -C "$repo" remote get-url origin >/dev/null 2>&1 || return 0
   unpushed || return 0
   (
-    GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=5' \
-      git -C "$repo" push --quiet origin HEAD &
+    mc_publish "$repo" "$host" &
     p=$!
-    ( sleep "${MACHINE_CONFIG_PUSH_TIMEOUT:-10}"; kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null ) &
+    ( sleep "${MACHINE_CONFIG_PUSH_TIMEOUT:-60}"; kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null ) &
     w=$!
     wait "$p"; kill -TERM "$w" 2>/dev/null; wait "$w"
   ) >/dev/null 2>&1
