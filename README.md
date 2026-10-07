@@ -74,7 +74,7 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 |---|---|---|
 | `craft` | reasoning and verification skills; the shared output styles, as `craft:<style name>` | — |
 | `infra` | Terraform, access and credential skills | — |
-| `herdr` | name, peer-sessions | SessionStart |
+| `herdr` | name, peer-sessions | — |
 | `machine-config` | snapshot, restore | SessionStart, SessionEnd |
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
 | `statusline` | statusline: the bar under the prompt — model, directory, context bands, 5h/7d usage, a work spinner and the idle timer | SessionStart, Stop, UserPromptSubmit, SessionEnd |
