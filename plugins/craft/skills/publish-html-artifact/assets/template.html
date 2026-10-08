@@ -1,0 +1,226 @@
+<title>{{Page name}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* House layout: ONE column of width --w. Prose, tables, figures and notes all
+   span that same width, so nothing narrows or widens down the page.
+   Adjust layout here (tokens) — never per page. */
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --fg: #16202a;
+  --muted: #5b6874;
+  --rule: #d9dee3;
+  --accent: #0d6b6f;
+  --accent-soft: #e3f1f1;
+  --done: #1f7a3d;
+  --done-soft: #e4f3e8;
+  --progress: #1f5fa8;
+  --progress-soft: #e4edf8;
+  --blocked: #a5521a;
+  --blocked-soft: #f8ebe0;
+  --idle: #6b7682;
+  --idle-soft: #edf0f2;
+  --code-bg: #eef1f3;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --w: 1040px;          /* the one content width */
+  --gap-section: 40px;  /* space between sections */
+  --gap-block: 14px;    /* space between blocks inside a section */
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12171c; --surface: #1a2027; --fg: #e4e9ee; --muted: #9aa6b2; --rule: #2d3640;
+    --accent: #5cc0c2; --accent-soft: #173336;
+    --done: #6fcf8d; --done-soft: #183526; --progress: #7fb0ec; --progress-soft: #1a2c44;
+    --blocked: #e9a26b; --blocked-soft: #3a2817; --idle: #9aa6b2; --idle-soft: #232b33;
+    --code-bg: #232b33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171c; --surface: #1a2027; --fg: #e4e9ee; --muted: #9aa6b2; --rule: #2d3640;
+  --accent: #5cc0c2; --accent-soft: #173336;
+  --done: #6fcf8d; --done-soft: #183526; --progress: #7fb0ec; --progress-soft: #1a2c44;
+  --blocked: #e9a26b; --blocked-soft: #3a2817; --idle: #9aa6b2; --idle-soft: #232b33;
+  --code-bg: #232b33; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.page { max-width: calc(var(--w) + 32px); margin: 0 auto; padding-inline: 16px; padding-block: 40px 64px; display: grid; gap: var(--gap-section); }
+header, section { display: grid; gap: var(--gap-block); min-width: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--font-display); font-size: 34px; line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: 22px; margin: 0; text-wrap: balance; }
+h3 { font-size: 16px; font-weight: 600; margin: 0; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: var(--font-mono); font-size: .86em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; font-family: var(--font-mono); font-size: 13px; background: var(--code-bg); border-radius: var(--radius); padding: 12px 14px; overflow-x: auto; }
+.lead { font-size: 17px; }
+.note { color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px 20px; display: grid; gap: 6px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sec-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* Tables: always the full column width, fixed layout, scroll inside on phones. */
+.tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); }
+table { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+td.num { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+td.nowrap { white-space: nowrap; }
+col.c-num { width: 56px; } col.c-owner { width: 120px; } col.c-status { width: 150px; } col.c-date { width: 130px; }
+/* Figures: inline SVG drawn with the tokens, same width as everything else. */
+.figure { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); padding: 16px; overflow-x: auto; }
+.figure svg { display: block; width: 100%; min-width: 640px; height: auto; }
+/* Runbook status (only used when the page carries #runbook-data). */
+.overall { display: grid; gap: 8px; }
+.overall-row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 8px; border-radius: 4px; background: var(--idle-soft); overflow: hidden; display: flex; }
+.bar span { display: block; height: 100%; }
+.b-done { background: var(--done); } .b-progress { background: var(--progress); } .b-blocked { background: var(--blocked); }
+tr[data-status="done"] td.step { color: var(--muted); }
+select.status { width: 100%; font: inherit; font-size: 13px; font-weight: 500; padding: 4px 8px; border-radius: 6px; border: 1px dashed var(--rule); background: transparent; color: var(--muted); cursor: pointer; }
+select.status:disabled { cursor: default; opacity: 1; }
+select.status[data-v="done"] { background: var(--done-soft); color: var(--done); border: 1px solid transparent; }
+select.status[data-v="in_progress"] { background: var(--progress-soft); color: var(--progress); border: 1px solid transparent; }
+select.status[data-v="blocked"] { background: var(--blocked-soft); color: var(--blocked); border: 1px solid transparent; }
+select.status[data-v="not_started"] { background: var(--idle-soft); color: var(--idle); border: 1px solid transparent; }
+.notice { font-size: 13px; color: var(--muted); }
+footer { font-size: 13px; color: var(--muted); }
+@media (max-width: 600px) { h1 { font-size: 28px; } .page { padding-block: 24px 48px; gap: 32px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">{{Kind · ticket keys}}</div>
+    <h1>{{Page name}}</h1>
+    <p class="lead">{{Goal: the outcome, the tickets as links. No current state.}}</p>
+
+    <!-- RUNBOOK ONLY: how-to panel + overall progress. Delete for a static page. -->
+    <div class="panel">
+      <p><strong>How to use this runbook.</strong> Work the steps in order. A step is Done only when its check passes against the running system, not when the change merges.</p>
+      <p>Progress lives only in the Status column, which every viewer sees live. A dashed status means nobody has set it yet. The effort is finished when every row reads Done.</p>
+    </div>
+    <div class="overall" aria-live="polite">
+      <div class="overall-row"><span id="overall-label">Loading status…</span><span id="overall-legend"></span></div>
+      <div class="bar" id="overall-bar"></div>
+    </div>
+    <p class="notice" id="notice" hidden></p>
+    <!-- /RUNBOOK ONLY -->
+  </header>
+
+  <!-- RUNBOOK ONLY: phase tables render here from #runbook-data. -->
+  <div id="phases" style="display:grid;gap:var(--gap-section)"></div>
+
+  <!-- Static section pattern: heading, one-line note, then a table / figure / list. -->
+  <section>
+    <h2>{{Section heading}}</h2>
+    <p class="note">{{One sentence on what this section fixes.}}</p>
+    <div class="tablewrap">
+      <table>
+        <colgroup><col><col class="c-owner"><col class="c-date"></colgroup>
+        <thead><tr><th>{{Item}}</th><th>{{By}}</th><th>{{Date}}</th></tr></thead>
+        <tbody>
+          <tr><td>{{…}}</td><td>{{…}}</td><td class="num">{{YYYY-MM-DD}}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Sources: {{links actually opened}}</footer>
+</div>
+
+<!-- RUNBOOK ONLY: the steps. Text here changes only by republishing; status never lives here. -->
+<script type="application/json" id="runbook-data">
+{
+  "collection": "steps",
+  "phases": [
+    { "id": "1", "title": "Phase 1: {{name}}", "note": "{{what this phase delivers}}", "steps": [
+      ["1.1", "{{action, as an imperative}}", "{{owner}}", "{{observable check read from the running system}}"]
+    ]}
+  ]
+}
+</script>
+<script>
+(() => {
+  const dataEl = document.getElementById("runbook-data");
+  if (!dataEl) return;
+  const { collection, phases } = JSON.parse(dataEl.textContent);
+  const OPTIONS = [["", "Not set"], ["not_started", "Not started"], ["in_progress", "In progress"], ["blocked", "Blocked"], ["done", "Done"]];
+  const docId = n => "s" + n.replace(/\./g, "-");
+  const status = {};
+  let db = null, canEdit = false;
+
+  const root = document.getElementById("phases");
+  root.innerHTML = phases.map(p => `
+    <section aria-labelledby="ph${p.id}">
+      <div class="sec-head"><h2 id="ph${p.id}">${p.title}</h2><span class="sec-count" id="count${p.id}"></span></div>
+      <p class="note">${p.note}</p>
+      <div class="tablewrap"><table>
+        <colgroup><col class="c-num"><col><col class="c-owner"><col><col class="c-status"></colgroup>
+        <thead><tr><th>#</th><th>Step</th><th>Owner</th><th>Done when</th><th>Status</th></tr></thead>
+        <tbody>${p.steps.map(([n, step, owner, check]) => `
+          <tr data-status="">
+            <td class="num">${n}</td><td class="step">${step}</td><td class="nowrap">${owner}</td><td>${check}</td>
+            <td><select class="status" id="st-${docId(n)}" aria-label="Status of step ${n}" data-v="" disabled>
+              ${OPTIONS.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}
+            </select></td>
+          </tr>`).join("")}
+        </tbody></table></div>
+    </section>`).join("");
+
+  function paint(loading) {
+    let total = 0; const tally = { done: 0, in_progress: 0, blocked: 0 };
+    for (const p of phases) {
+      let done = 0;
+      for (const [n] of p.steps) {
+        const v = status[docId(n)] || "", sel = document.getElementById("st-" + docId(n));
+        sel.value = v; sel.dataset.v = v; sel.disabled = !(db && canEdit); sel.closest("tr").dataset.status = v;
+        total++; if (v in tally) tally[v]++; if (v === "done") done++;
+      }
+      document.getElementById("count" + p.id).textContent = `${done} of ${p.steps.length} done`;
+    }
+    const pct = k => (tally[k] / total * 100).toFixed(2) + "%";
+    document.getElementById("overall-bar").innerHTML =
+      `<span class="b-done" style="width:${pct("done")}"></span><span class="b-progress" style="width:${pct("in_progress")}"></span><span class="b-blocked" style="width:${pct("blocked")}"></span>`;
+    document.getElementById("overall-label").textContent = loading ? "Loading status…" : `${tally.done} of ${total} steps done`;
+    document.getElementById("overall-legend").textContent = loading ? "" : `${tally.in_progress} in progress · ${tally.blocked} blocked`;
+  }
+  function notice(t) { const n = document.getElementById("notice"); n.textContent = t; n.hidden = false; }
+
+  root.addEventListener("change", async e => {
+    const sel = e.target.closest("select.status");
+    if (!sel || !db) return;
+    const id = sel.id.slice(3), v = sel.value, prev = status[id] || "";
+    status[id] = v; paint();
+    try {
+      const ref = db.doc(collection + "/" + id);
+      if (v) await ref.set({ status: v, updatedAt: new Date().toISOString() }); else await ref.delete();
+    } catch (err) {
+      status[id] = prev; paint();
+      notice(err && err.code === "invalid_argument" ? "Only people with edit access can change a status." : "That status did not save. Try again.");
+    }
+  });
+
+  paint(true);
+  (async () => {
+    const api = window.claude;
+    if (!api || !api.use) { notice("Statuses load when this page is opened on claude.ai."); return; }
+    const [d, user] = await Promise.all([api.use("db"), api.use("user")]);
+    if (!d) { notice("Statuses could not load in this view."); return; }
+    db = d; canEdit = user ? await user.canEdit() : false;
+    if (!canEdit) notice("You can view statuses; ask the owner for edit access to change them.");
+    db.collection(collection).onSnapshot(snap => {
+      for (const k of Object.keys(status)) delete status[k];
+      for (const doc of snap.docs) { const b = doc.data(); if (b && typeof b.status === "string") status[doc.id] = b.status; }
+      paint();
+    }, () => notice("Live status updates stopped. Reload the page to reconnect."));
+  })();
+})();
+</script>
