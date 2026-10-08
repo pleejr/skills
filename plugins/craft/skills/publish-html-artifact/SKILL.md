@@ -25,7 +25,9 @@ Copy `assets/template.html` to the scratchpad (one folder per page, `index.html`
 - **Layout changes go to the tokens**, not per element: `--w`, `--gap-section`, `--gap-block`, `--radius`, the fonts and the palette. When the user asks for a layout change (wider, tighter, different spacing), change the token in this page and, if it should hold for future pages, in `assets/template.html` too.
 - **Placeholders** are `{{…}}`. Replace every one; a page that ships with a `{{` is unfinished (`grep -c '{{' index.html` must be 0).
 - **Figures** are inline SVG drawn with the tokens (`var(--fg)`, `var(--muted)`, `var(--accent)`), inside `.figure`. Words in the drawing are only facts stated elsewhere on the page.
-- **Voice:** briefing register — the lead states the goal and the ticket links, sections open with their point, specifics over adjectives. No status prose (below).
+- **Header:** the lead states the goal in one or two plain sentences, with no links and no current state. Tickets go in the `.refs` list beneath it, one row each: the key as a link, then what that ticket covers in a few words. Never thread ticket links through the lead's prose.
+- **No usage instructions.** The page carries no "how to use this" panel or note. A reader who would need one is a signal to simplify: clearer column headers, a plainer action, a check that names its value. Fix the table, not the reader.
+- **Voice:** briefing register — sections open with their point, specifics over adjectives. No status prose (below).
 - **Title:** `<title>` is the page's name, two to four words; the explanation goes in the publish `description`.
 
 ## 3. Runbooks: written to be followed, never to go stale
@@ -53,6 +55,7 @@ A runbook's text says what to do and how to know it is done; it never says how f
 ## 5. Checklist
 
 - [ ] Built from `assets/template.html`; no `{{` left.
+- [ ] Lead is the goal alone, no links; tickets sit in the `.refs` list; no how-to panel or usage note.
 - [ ] Every table full width with `<colgroup>`; no element narrower or wider than `--w`.
 - [ ] No status prose, counts or "as of" lines in the text.
 - [ ] Runbook: checks are observable values; db rules declared; seeded statuses verified; rules verified at `interact`.

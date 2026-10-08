@@ -62,7 +62,11 @@ code { font-family: var(--font-mono); font-size: .86em; background: var(--code-b
 pre { margin: 0; font-family: var(--font-mono); font-size: 13px; background: var(--code-bg); border-radius: var(--radius); padding: 12px 14px; overflow-x: auto; }
 .lead { font-size: 17px; }
 .note { color: var(--muted); }
-.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 16px 20px; display: grid; gap: 6px; }
+/* Tickets: a list under the lead, one key per row with what it covers. */
+.refs { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.refs li { display: grid; grid-template-columns: 7.5em 1fr; gap: 12px; align-items: baseline; }
+.refs a { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.refs span { color: var(--muted); min-width: 0; }
 .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .sec-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 /* Tables: always the full column width, fixed layout, scroll inside on phones. */
@@ -98,15 +102,15 @@ footer { font-size: 13px; color: var(--muted); }
 
 <div class="page">
   <header>
-    <div class="eyebrow">{{Kind · ticket keys}}</div>
+    <div class="eyebrow">{{Kind: Runbook, Plan, Report…}}</div>
     <h1>{{Page name}}</h1>
-    <p class="lead">{{Goal: the outcome, the tickets as links. No current state.}}</p>
+    <p class="lead">{{The goal in one or two plain sentences. No links, no current state.}}</p>
+    <!-- Tickets: one row each, key then what it covers. Delete the list when there are none. -->
+    <ul class="refs" aria-label="Tickets">
+      <li><a href="https://worldwinner.atlassian.net/browse/{{KEY}}">{{KEY}}</a><span>{{what this ticket covers, a few words}}</span></li>
+    </ul>
 
-    <!-- RUNBOOK ONLY: how-to panel + overall progress. Delete for a static page. -->
-    <div class="panel">
-      <p><strong>How to use this runbook.</strong> Work the steps in order. A step is Done only when its check passes against the running system, not when the change merges.</p>
-      <p>Progress lives only in the Status column, which every viewer sees live. A dashed status means nobody has set it yet. The effort is finished when every row reads Done.</p>
-    </div>
+    <!-- RUNBOOK ONLY: overall progress. Delete for a static page. -->
     <div class="overall" aria-live="polite">
       <div class="overall-row"><span id="overall-label">Loading status…</span><span id="overall-legend"></span></div>
       <div class="bar" id="overall-bar"></div>
