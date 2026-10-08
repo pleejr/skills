@@ -15,16 +15,17 @@ set -uo pipefail
 
 STATE_DIR="${HERDR_NAME_STATE_DIR:-$HOME/.claude/state/herdr-name}"
 SOURCE_ID="herdr:claude-name"
-# Both sidebar fields cut off at 32 characters. Fit the strings here, on whole
-# word boundaries, rather than let the surface cut one in half.
+# The label cuts off at 32 characters; 32-character topics were seen cut off
+# too (2026-10-08), so hold the topic to 28. Fit the strings here, on whole word boundaries, rather than let
+# the surface cut one in half.
 LABEL_MAX=32
-TOPIC_MAX=32
+TOPIC_MAX=28
 
 die_quiet() { exit 0; }
 
 usage() {
   cat >&2 <<'EOF'
-usage: herdr-name.sh set <LABEL> <TOPIC>   apply a 1-2 word label and a 4-5 word topic
+usage: herdr-name.sh set <LABEL> <TOPIC>   apply a 1-2 word label and a 3-4 word topic
        herdr-name.sh reset                 restore the original label, clear the topic
        herdr-name.sh show                  print current label, topic, saved original
 EOF

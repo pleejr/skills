@@ -1,8 +1,8 @@
 ---
 name: name
-description: Name the current Herdr space after the work in progress — a 1-2 word domain label on the space itself (the ticket key, e.g. SER-642, when the work is a Jira ticket), plus a 4-5 word topic line beneath it — so the sidebar says what each session is actually doing. On demand only, never per-turn: the naming comes from session context already in hand, so it costs one command and no summarizer. Also clears a name back to the space's original label. Triggers "/name", "name this space", "rename the space", "update the space name", "set the space topic", "what is this space called", "clear the space name", "restore the space name". Distinct from the bundled `herdr` skill (which controls panes, tabs, and agents to do work) — this only labels the current space for display. NOT for renaming tabs or panes, and NOT for creating or closing workspaces.
+description: Name the current Herdr space after the work in progress — a 1-2 word domain label on the space itself (the ticket key, e.g. SER-642, when the work is a Jira ticket), plus a 3-4 word topic line beneath it — so the sidebar says what each session is actually doing. On demand only, never per-turn: the naming comes from session context already in hand, so it costs one command and no summarizer. Also clears a name back to the space's original label. Triggers "/name", "name this space", "rename the space", "update the space name", "set the space topic", "what is this space called", "clear the space name", "restore the space name". Distinct from the bundled `herdr` skill (which controls panes, tabs, and agents to do work) — this only labels the current space for display. NOT for renaming tabs or panes, and NOT for creating or closing workspaces.
 version: 1.2.0
-summary: On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call.
+summary: On-demand Herdr space naming — a 1-2 word domain label plus a 3-4 word topic, applied from session context with no summarizer call.
 ---
 
 # name
@@ -12,14 +12,14 @@ Herdr's sidebar lists spaces by label. A space called `General` tells you nothin
 Two strings, two surfaces:
 
 - **Label** — 1–2 words naming the *domain* of work. Replaces the space's own name, shown in the sidebar. Max 32 characters.
-- **Topic** — 4–5 words expanding the label into the specific work. Shown as a second sidebar row via display-only workspace metadata. Max 32 characters.
+- **Topic** — 3–4 words expanding the label into the specific work. Shown as a second sidebar row via display-only workspace metadata. Max 28 characters.
 
-**Both fields cut off at 32 characters.** Count the characters before you apply a name. Write a shorter word rather than a long one that does not fit. The script fits an over-long string on whole word boundaries, and reports the trim on stderr, but a name that arrives complete is always better than one the script had to cut.
+**The label cuts off at 32 characters; the topic is held to 28**, because topics at the full 32 were seen cut off in the sidebar (2026-10-08). Count the characters before you apply a name. Write a shorter word rather than a long one that does not fit. The script fits an over-long string on whole word boundaries, and reports the trim on stderr, but a name that arrives complete is always better than one the script had to cut.
 
 ```
 SPACES
   ● Herdr Naming
-      Design on-demand space rename
+      Design on-demand rename
 ```
 
 ## Why on demand, and not per turn
@@ -31,12 +31,12 @@ A per-turn summarizer costs a model call per turn for a label that changes once 
 ```bash
 S=~/.claude/skills/name/scripts/herdr-name.sh
 
-$S set "Herdr Naming" "Design on-demand space rename"
+$S set "Herdr Naming" "Design on-demand rename"
 $S show      # current label, topic, and the saved original
 $S reset     # restore the original label, clear the topic
 ```
 
-The script holds no judgement — it applies what you give it, fits each field to 32 characters on a word boundary, and remembers the space's original label the first time it renames so `reset` can put it back.
+The script holds no judgement — it applies what you give it, fits the label to 32 and the topic to 28 characters on a word boundary, and remembers the space's original label the first time it renames so `reset` can put it back.
 
 ## Procedure
 
@@ -50,7 +50,7 @@ The script holds no judgement — it applies what you give it, fits each field t
 
    For every *other* pane whose `agent` is `claude`, read its `terminal_title_stripped`. Those are sibling sessions in the same space; fold their work into the label so the name covers the whole space rather than just this pane.
 4. Compose the two strings against the rules below.
-5. Count the characters in each string. If either exceeds 32, rewrite it shorter. Do not hand the script a string that it must cut.
+5. Count the characters in each string. If the label exceeds 32 or the topic exceeds 28, rewrite it shorter. Do not hand the script a string that it must cut.
 6. Show both to the user before applying. One line, no preamble.
 7. Apply with `$S set "<LABEL>" "<TOPIC>"`.
 
@@ -64,8 +64,8 @@ The script holds no judgement — it applies what you give it, fits each field t
 
 ## Writing the topic
 
-- **4–5 words, max 32 characters** expanding the label into the specific work in progress. 32 characters is tight for 5 words — pick short words, and drop to 4 words when they are long.
-- It must add information the label does not already carry. `Herdr Naming` / `Herdr naming work` is a wasted line; `Herdr Naming` / `Design on-demand space rename` is not.
+- **3–4 words, hard max 28 characters** expanding the label into the specific work in progress. 28 characters is tight for 4 words — pick short words, and drop to 3 words when they are long.
+- It must add information the label does not already carry. `Herdr Naming` / `Herdr naming work` is a wasted line; `Herdr Naming` / `Design on-demand rename` is not.
 - Sentence case, no trailing period.
 
 ## Clearing a name

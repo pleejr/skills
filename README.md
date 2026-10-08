@@ -45,7 +45,7 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 
 | Skill | What it does |
 |-------|--------------|
-| [`name`](plugins/herdr/skills/name/SKILL.md) | On-demand Herdr space naming — a 1-2 word domain label plus a 4-5 word topic, applied from session context with no summarizer call. |
+| [`name`](plugins/herdr/skills/name/SKILL.md) | On-demand Herdr space naming — a 1-2 word domain label plus a 3-4 word topic, applied from session context with no summarizer call. |
 | [`peer-sessions`](plugins/herdr/skills/peer-sessions/SKILL.md) | Spawn a fleet of named interactive Claude Code sessions into herdr panes, gate readiness on the messaging socket, brief each peer over native SendMessage, harvest the work before it is lost, and hand back a teardown. |
 
 ### machine-config
