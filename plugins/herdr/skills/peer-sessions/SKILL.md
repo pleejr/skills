@@ -16,7 +16,7 @@ The message path is native: `SendMessage` briefs a peer by name, `ListAgents` li
 ```bash
 test "${HERDR_ENV:-}" = 1        # inside a herdr pane
 claude --version                 # 2.1.224 or newer, for peer messages
-PS="$(readlink ~/.claude/skills/spawn)/scripts"   # the symlink is the pointer
+PS="${CLAUDE_SKILL_DIR}/scripts"   # this skill's bundled scripts; the install path differs per machine
 python3 "$PS/peer-addr.py" --me
 ```
 
