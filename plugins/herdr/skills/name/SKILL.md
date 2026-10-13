@@ -29,7 +29,7 @@ A per-turn summarizer costs a model call per turn for a label that changes once 
 ## Applying a name
 
 ```bash
-S=~/.claude/skills/name/scripts/herdr-name.sh
+S=herdr-name   # the plugin bin/ command; a plugin install has no ~/.claude/skills/name
 
 $S set "Herdr Naming" "Design on-demand rename"
 $S show      # current label, topic, and the saved original

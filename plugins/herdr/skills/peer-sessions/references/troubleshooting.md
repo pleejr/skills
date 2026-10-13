@@ -6,7 +6,7 @@ to be addressed.
 Start here, always:
 
 ```bash
-python3 "$(readlink ~/.claude/skills/spawn)/scripts/peer-addr.py"
+python3 "${CLAUDE_SKILL_DIR}/scripts/peer-addr.py"
 ```
 
 It lists every live session on the machine and gives a reason for each one you
