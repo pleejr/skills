@@ -63,6 +63,12 @@
       "description": "Warns when a SKILL.md is written whose name does not start with an approved verb, so new skills follow the verb-led pattern in every repo and session. Advisory; never blocks.",
       "source": "./plugins/skill-name-guard",
       "category": "development"
+    },
+    {
+      "name": "bang-fill",
+      "description": "Fills an empty prompt box with the last `! <command>` line of a reply, so a handed-over command runs with Enter instead of a copy and paste.",
+      "source": "./plugins/bang-fill",
+      "category": "productivity"
     }
   ]
 }

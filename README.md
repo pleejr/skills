@@ -80,6 +80,7 @@ Skills live under `plugins/<plugin>/skills/<name>/SKILL.md`, one plugin per fami
 | `plugin-updates` | plugin-updates: reports every installed plugin behind its latest release, from any marketplace, and offers the update | SessionStart |
 | `statusline` | statusline: the bar under the prompt — model, directory, context bands, 5h/7d usage, a work spinner and the idle timer | SessionStart, Stop, UserPromptSubmit, SessionEnd |
 | `skill-name-guard` | no skills: a hook that warns when a `SKILL.md` is written with a name that does not start with an approved verb | PostToolUse |
+| `bang-fill` | no skills: a hooks module that puts the last `! <command>` line of a reply into an empty prompt box; a draft already typed is kept | turn.complete (hooks module) |
 
 A plugin that carries a hook wires it through its own `hooks/hooks.json`, so enabling the plugin is the wiring; nothing goes in `settings.json` by hand.
 
