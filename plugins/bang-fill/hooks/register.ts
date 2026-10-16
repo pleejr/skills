@@ -2,14 +2,35 @@ import type { Register } from 'claude-code'
 
 // A handed-over command: a line that starts with `! `, optionally wrapped in backticks.
 const BANG = /^\s*`?(!\s*\S.*?)`?\s*$/
+// The same command as an inline code span anywhere in a line, such as a bullet
+// or a Decision option: `` `! cmd` ``. The space after `!` is required here, so
+// `!important` or `!=` in code prose is not one, and neither is a bare `!`.
+const SPAN = /`(!\s+[^`\s][^`]*)`/g
 
+function normalize(command: string): string {
+  return command.trim().replace(/^!\s*/, '! ')
+}
+
+// The commands a line hands over, in order: the whole line, or its `! ` spans.
+function bangsIn(line: string): string[] {
+  const whole = BANG.exec(line)
+  if (whole && !whole[1].includes('`')) return [normalize(whole[1])]
+  return [...line.matchAll(SPAN)].map(m => normalize(m[1]))
+}
+
+// The last handed-over command, unless a line marked recommended carries one:
+// a Decision block lists its recommended option first, so "last" would offer
+// the alternative.
 export function lastBang(answer: string): string | undefined {
-  const lines = answer.split('\n')
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const m = BANG.exec(lines[i])
-    if (m) return m[1].replace(/^!\s*/, '! ')
+  let last: string | undefined
+  let recommended: string | undefined
+  for (const line of answer.split('\n')) {
+    const found = bangsIn(line)
+    if (found.length === 0) continue
+    last = found[found.length - 1]
+    if (/\brecommended\b/i.test(line)) recommended = last
   }
-  return undefined
+  return recommended ?? last
 }
 
 export const register: Register = on => {
