@@ -21,20 +21,28 @@
 # so when a number is given pass --repo as well; without it the script refuses a PR whose
 # head branch is not on the cwd repo's origin and whose head repo is not the cwd repo.
 #
+# Checks are waited for before the merge, because --admin bypasses branch protection and
+# so nothing else stops a merge while CI is still running. See wait_for_checks below.
+#
 # Usage:
 #   bin/pr-merge.sh                     # PR of the current branch, squash, --admin
 #   bin/pr-merge.sh 27                  # by number, in the repo the cwd belongs to
 #   bin/pr-merge.sh --repo o/r 27       # by number, in a named repo (cwd irrelevant)
 #   bin/pr-merge.sh --dry-run           # print the plan, touch nothing
 #   bin/pr-merge.sh --strategy rebase --no-admin --keep-worktree
+#   bin/pr-merge.sh --skip-checks 27    # merge without waiting for or reading checks
+# Env: PR_MERGE_REGISTER_TIMEOUT (default 180s), PR_MERGE_CHECKS_TIMEOUT (default 1800s)
 set -euo pipefail
 
 STRATEGY=squash
 ADMIN=--admin
 KEEP_WORKTREE=0
 DRY=0
+SKIP_CHECKS=0
 PR=""
 REPO=""
+REGISTER_TIMEOUT=${PR_MERGE_REGISTER_TIMEOUT:-180}
+CHECKS_TIMEOUT=${PR_MERGE_CHECKS_TIMEOUT:-1800}
 
 die() { printf 'pr-merge: %s\n' "$*" >&2; exit 1; }
 say() { printf 'pr-merge: %s\n' "$*"; }
@@ -46,8 +54,9 @@ while [ $# -gt 0 ]; do
     --no-admin) ADMIN=""; shift ;;
     --keep-worktree) KEEP_WORKTREE=1; shift ;;
     --dry-run|-n) DRY=1; shift ;;
+    --skip-checks) SKIP_CHECKS=1; shift ;;
     --repo) REPO="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) die "unknown flag: $1" ;;
     *) PR="$1"; shift ;;
   esac
@@ -122,8 +131,72 @@ say "$TITLE"
 [ "$DRY" = 1 ] && say "dry run — nothing will be changed"
 [ "$LOCAL" = 0 ] && say "cwd is ${CWD_SLUG:-not a GitHub checkout}, not $SLUG — merging via the API only, no local cleanup"
 
+# The PR's check buckets (pass, fail, pending, skipping, cancel), one per line. gh exits
+# nonzero with "no checks reported" when none have registered, which is read as empty.
+check_buckets() {
+  gh pr checks "$NUM" --repo "$SLUG" --json name,bucket \
+    -q '.[] | "\(.bucket)\t\(.name)"' 2>/dev/null || true
+}
+
+# Wait for the PR's checks to register and finish, then refuse on any failure.
+#
+# The failure this exists to prevent: right after a push, `gh pr checks --watch` prints
+# "no checks reported" and returns at once, because the workflows have not registered
+# yet -- not because the repo has none. Callers ran it, saw it return, and this script
+# merged with --admin while the run was still pending, five times between 2026-09-29 and
+# 2026-10-19. A note telling the caller to wait did not stop it, so the wait lives here.
+#
+# Registration is staggered (a GitHub Actions run and an external status such as a
+# Terraform Cloud plan arrive seconds apart), so after the first check appears the gate
+# waits a short settle period and re-reads before watching, and it re-reads once more
+# after everything finishes in case a late check registered meanwhile.
+wait_for_checks() {
+  local buckets waited=0 active
+  buckets=$(check_buckets)
+  if [ "$DRY" = 1 ]; then
+    say "checks now: ${buckets:-none registered} — a real run waits for them"
+    return 0
+  fi
+  while [ -z "$buckets" ] && [ "$waited" -lt "$REGISTER_TIMEOUT" ]; do
+    [ "$waited" = 0 ] && say "waiting up to ${REGISTER_TIMEOUT}s for checks to register on $HEADSHA"
+    sleep 5; waited=$((waited + 5))
+    buckets=$(check_buckets)
+  done
+  if [ -z "$buckets" ]; then
+    # Nothing registered. That is only "no CI" when the repo has no active workflow;
+    # with one, it is a run that has not shown up yet, and merging is the old bug.
+    active=$(gh api "repos/$SLUG/actions/workflows" \
+             -q '[.workflows[] | select(.state == "active")] | length' 2>/dev/null || echo unknown)
+    if [ "$active" = 0 ]; then
+      say "no checks registered and $SLUG has no active workflows — merging without checks"
+      return 0
+    fi
+    die "no checks registered on #$NUM after ${REGISTER_TIMEOUT}s ($active active workflows in $SLUG) — re-run, or pass --skip-checks if the PR runs none"
+  fi
+  sleep 15
+  local pass
+  for pass in 1 2; do
+    waited=0
+    while buckets=$(check_buckets); grep -q '^pending' <<<"$buckets"; do
+      [ "$waited" -ge "$CHECKS_TIMEOUT" ] && die "checks still pending on #$NUM after ${CHECKS_TIMEOUT}s: $(grep '^pending' <<<"$buckets" | cut -f2 | paste -sd, -)"
+      [ "$waited" = 0 ] && say "waiting for $(grep -c '^pending' <<<"$buckets") pending check(s)"
+      sleep 10; waited=$((waited + 10))
+    done
+    [ "$pass" = 1 ] && sleep 10
+  done
+  if grep -qE '^(fail|cancel)' <<<"$buckets"; then
+    die "refusing to merge #$NUM — failed checks: $(grep -E '^(fail|cancel)' <<<"$buckets" | cut -f2 | paste -sd, -)"
+  fi
+  say "checks green: $(wc -l <<<"$buckets" | tr -d ' ') registered, none failed"
+}
+
 case "$STATE" in
   OPEN)
+    if [ "$SKIP_CHECKS" = 1 ]; then
+      say "--skip-checks — merging without reading checks"
+    else
+      wait_for_checks
+    fi
     # --repo keeps gh entirely on the API: no local checkout, no branch switch, nothing
     # to collide with the worktree. --delete-branch is deliberately NOT passed; the
     # remote ref is deleted below, after the merge is confirmed rather than assumed.
