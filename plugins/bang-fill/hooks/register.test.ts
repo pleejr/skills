@@ -29,3 +29,27 @@ test('a bare ! in prose, or a span with no space after !, is not a command', () 
   expect(lastBang('- Done! It works.')).toBeUndefined()
   expect(lastBang('the `!important` flag and `a != b`')).toBeUndefined()
 })
+
+const turn = (answer: string) => ({ answer, reason: 'answer' as const, durationMs: 1, isAborted: false, turnId: 't' })
+const guess = { text: 'I typed it', origin: { kind: 'suggestion' as const } }
+
+test('the engine guess does not replace an offered command until the next prompt', async ($, on) => {
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('prompt.suggest', () => ({ isShown: true }))
+  on('prompt.submit', ($, e) => ({ text: e.text }))
+
+  await $.turn.complete(turn('Run it:\n\n! echo hi'))
+  expect((await $.prompt.suggest(guess)).isShown).toBe(false)
+
+  await $.prompt.submit({ text: 'next' })
+  expect((await $.prompt.suggest(guess)).isShown).toBe(true)
+})
+
+test('the engine guess shows after an answer with no command', async ($, on) => {
+  on('turn.complete', ($, e) => ({ text: e.answer }))
+  on('prompt.suggest', () => ({ isShown: true }))
+
+  await $.turn.complete(turn('Run it:\n\n! echo hi'))
+  await $.turn.complete(turn('Done.'))
+  expect((await $.prompt.suggest(guess)).isShown).toBe(true)
+})

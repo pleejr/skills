@@ -33,12 +33,26 @@ export function lastBang(answer: string): string | undefined {
   return recommended ?? last
 }
 
+// The command on offer since the last answer. The engine generates its own
+// guess at the next prompt a moment after the turn ends, and showing that guess
+// replaces this one, so it is dropped until the person submits something.
+let offered: string | undefined
+
 export const register: Register = on => {
+  on('prompt.suggest', ($, e, next) =>
+    e.origin.kind === 'suggestion' && offered !== undefined ? { isShown: false } : next(e))
+
+  on('prompt.submit', ($, e, next) => {
+    offered = undefined
+    return next(e)
+  })
+
   on('turn.complete', async ($, e, next) => {
     const done = await next(e)
-    if (e.agentId !== undefined || e.reason !== 'answer') return done
+    if (e.agentId !== undefined) return done
 
-    const command = lastBang(e.answer)
+    const command = e.reason === 'answer' ? lastBang(e.answer) : undefined
+    offered = command
     if (command === undefined) return done
 
     // A suggestion, not a fill: `$.prompt.fill` writes `! cmd` as plain text,
