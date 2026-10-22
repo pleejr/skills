@@ -28,6 +28,7 @@
 #   bin/pr-merge.sh                     # PR of the current branch, squash, --admin
 #   bin/pr-merge.sh 27                  # by number, in the repo the cwd belongs to
 #   bin/pr-merge.sh --repo o/r 27       # by number, in a named repo (cwd irrelevant)
+#   bin/pr-merge.sh https://github.com/o/r/pull/27   # by URL: same as --repo o/r 27
 #   bin/pr-merge.sh --dry-run           # print the plan, touch nothing
 #   bin/pr-merge.sh --strategy rebase --no-admin --keep-worktree
 #   bin/pr-merge.sh --skip-checks 27    # merge without waiting for or reading checks
@@ -56,13 +57,27 @@ while [ $# -gt 0 ]; do
     --dry-run|-n) DRY=1; shift ;;
     --skip-checks) SKIP_CHECKS=1; shift ;;
     --repo) REPO="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,35p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) die "unknown flag: $1" ;;
     *) PR="$1"; shift ;;
   esac
 done
 case "$STRATEGY" in squash|merge|rebase) ;; *) die "--strategy must be squash|merge|rebase" ;; esac
 case "$REPO" in "") ;; */*) ;; *) die "--repo must be owner/name, got: $REPO" ;; esac
+
+# A PR URL names its repo; take it from there rather than the cwd. Passed through as
+# before, `gh pr view <url> --repo <cwd repo>` kept the number and dropped the URL's
+# repo, so a URL for o/a#282 run from a checkout of o/b resolved to o/b#282.
+if [[ "$PR" =~ ^https://github\.com/([^/]+/[^/]+)/pull/([0-9]+)([/?#].*)?$ ]]; then
+  URL_SLUG=${BASH_REMATCH[1]}
+  if [ -n "$REPO" ] && [ "$(printf '%s' "$REPO" | tr '[:upper:]' '[:lower:]')" != "$(printf '%s' "$URL_SLUG" | tr '[:upper:]' '[:lower:]')" ]; then
+    die "--repo $REPO contradicts the PR URL's repo $URL_SLUG"
+  fi
+  REPO=$URL_SLUG
+  PR=${BASH_REMATCH[2]}
+elif [ -n "$PR" ] && ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+  die "PR must be a number or a https://github.com/owner/name/pull/N URL, got: $PR"
+fi
 [ -n "$REPO" ] && [ -z "$PR" ] && die "--repo needs a PR number; the current-branch lookup is cwd-only"
 
 command -v gh  >/dev/null 2>&1 || die "gh not found"
