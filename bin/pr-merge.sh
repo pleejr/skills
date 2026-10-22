@@ -138,6 +138,38 @@ check_buckets() {
     -q '.[] | "\(.bucket)\t\(.name)"' 2>/dev/null || true
 }
 
+# The check names the most recent merged PR into the same base ran, one per line. That
+# PR is the best record of what this repo reports, including external statuses that no
+# workflow file declares.
+expected_checks() {
+  local prev
+  prev=$(gh pr list --repo "$SLUG" --base "$BASE" --state merged --limit 1 \
+           --json number -q '.[0].number // empty' 2>/dev/null) || true
+  [ -n "$prev" ] && [ "$prev" != "$NUM" ] || return 0
+  gh pr checks "$prev" --repo "$SLUG" --json name -q '.[].name' 2>/dev/null | sort -u || true
+}
+
+# Wait until every expected check has registered on this PR, up to REGISTER_TIMEOUT.
+#
+# The failure this exists to prevent: an external status registers long after the
+# workflow checks. On infra-aws-tf-ww-ou#97 (2026-10-22) the Actions checks finished at
+# 16:49:36Z, the settle re-read saw them all green, and the Terraform Cloud status first
+# appeared at 16:49:56Z, one second before the --admin merge. A missing expected check
+# only warns once the timeout passes, since a renamed or retired check is legitimate.
+wait_for_expected() {
+  local expected missing waited=0
+  expected=$(expected_checks)
+  [ -n "$expected" ] || return 0
+  while missing=$(comm -23 <(printf '%s\n' "$expected") <(check_buckets | cut -f2 | sort -u)); [ -n "$missing" ]; do
+    if [ "$waited" -ge "$REGISTER_TIMEOUT" ]; then
+      say "WARNING: still not registered after ${REGISTER_TIMEOUT}s, though the last merged PR ran them: $(paste -sd, - <<<"$missing")"
+      return 0
+    fi
+    [ "$waited" = 0 ] && say "waiting for check(s) the last merged PR ran: $(paste -sd, - <<<"$missing")"
+    sleep 5; waited=$((waited + 5))
+  done
+}
+
 # Wait for the PR's checks to register and finish, then refuse on any failure.
 #
 # The failure this exists to prevent: right after a push, `gh pr checks --watch` prints
@@ -174,6 +206,7 @@ wait_for_checks() {
     die "no checks registered on #$NUM after ${REGISTER_TIMEOUT}s ($active active workflows in $SLUG) — re-run, or pass --skip-checks if the PR runs none"
   fi
   sleep 15
+  wait_for_expected
   local pass
   for pass in 1 2; do
     waited=0
