@@ -1,10 +1,10 @@
 {
   "name": "bang-fill",
-  "description": "Offers the last `! <command>` line of a reply as the empty prompt box's Tab suggestion, so a handed-over command runs in shell mode with Tab and Enter.",
+  "description": "Offers the last `! <command>` line, or one-command shell block, of a reply as the empty prompt box's Tab suggestion, so a handed-over command runs in shell mode with Tab and Enter.",
   "author": {
     "name": "pleejr",
     "email": "preston@pleejr.com"
   },
   "homepage": "https://github.com/pleejr/skills",
-  "version": "1.3.0"
+  "version": "1.4.0"
 }

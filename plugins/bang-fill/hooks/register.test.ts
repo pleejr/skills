@@ -30,6 +30,31 @@ test('a bare ! in prose, or a span with no space after !, is not a command', () 
   expect(lastBang('the `!important` flag and `a != b`')).toBeUndefined()
 })
 
+test('takes a one-command shell block, continuations joined', () => {
+  expect(lastBang('Run it:\n\n```bash\n~/allow.sh \\\n  \'Bash(a:*)\' \\\n  \'Bash(b:*)\'\n```\n\nThen I continue.'))
+    .toBe("! ~/allow.sh 'Bash(a:*)' 'Bash(b:*)'")
+  expect(lastBang('```sh\n!bash ~/c.sh\n```')).toBe('! bash ~/c.sh')
+})
+
+test('a shell block of several commands, or an unlabelled block, hands over nothing', () => {
+  expect(lastBang('```bash\ncd /tmp\nls\n```')).toBeUndefined()
+  expect(lastBang('```bash\n# just a comment\n```')).toBeUndefined()
+  expect(lastBang('```\nterraform plan\n```')).toBeUndefined()
+  expect(lastBang('```json\n{"a": 1}\n```')).toBeUndefined()
+})
+
+test('a shell block introduced by the recommended line wins', () => {
+  const decision = [
+    'Decision:',
+    '- **Allow it (recommended):**',
+    '```sh',
+    '~/allow.sh x',
+    '```',
+    '- **Ask Luis:** he runs `! bash ~/other.sh` himself.',
+  ].join('\n')
+  expect(lastBang(decision)).toBe('! ~/allow.sh x')
+})
+
 const turn = (answer: string) => ({ answer, reason: 'answer' as const, durationMs: 1, isAborted: false, turnId: 't' })
 const guess = { text: 'I typed it', origin: { kind: 'suggestion' as const } }
 

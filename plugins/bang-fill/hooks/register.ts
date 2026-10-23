@@ -6,9 +6,21 @@ const BANG = /^\s*`?(!\s*\S.*?)`?\s*$/
 // or a Decision option: `` `! cmd` ``. The space after `!` is required here, so
 // `!important` or `!=` in code prose is not one, and neither is a bare `!`.
 const SPAN = /`(!\s+[^`\s][^`]*)`/g
+// A fenced shell block opens with ```sh, ```bash, ```zsh or ```shell; any ``` closes it.
+const SHELL_FENCE = /^\s*```\s*(?:sh|bash|zsh|shell)\s*$/i
+const FENCE = /^\s*```/
 
 function normalize(command: string): string {
   return command.trim().replace(/^!\s*/, '! ')
+}
+
+// A shell block holding one command, its `\` continuations joined. A block of
+// several commands, or only a comment, is a script to read rather than a
+// command to run, so it hands over nothing.
+function fencedCommand(body: string[]): string | undefined {
+  const lines = body.join('\n').replace(/\\\n\s*/g, '').split('\n').map(l => l.trim()).filter(l => l !== '')
+  if (lines.length !== 1 || lines[0].startsWith('#')) return undefined
+  return normalize(lines[0].startsWith('!') ? lines[0] : `! ${lines[0]}`)
 }
 
 // The commands a line hands over, in order: the whole line, or its `! ` spans.
@@ -20,11 +32,31 @@ function bangsIn(line: string): string[] {
 
 // The last handed-over command, unless a line marked recommended carries one:
 // a Decision block lists its recommended option first, so "last" would offer
-// the alternative.
+// the alternative. A one-command shell block counts as a line of its own, and
+// is recommended when the line introducing it is.
 export function lastBang(answer: string): string | undefined {
   let last: string | undefined
   let recommended: string | undefined
+  let block: string[] | undefined
+  let lead = ''
   for (const line of answer.split('\n')) {
+    if (block !== undefined) {
+      if (!FENCE.test(line)) {
+        block.push(line)
+        continue
+      }
+      const command = fencedCommand(block)
+      block = undefined
+      if (command === undefined) continue
+      last = command
+      if (/\brecommended\b/i.test(lead)) recommended = command
+      continue
+    }
+    if (SHELL_FENCE.test(line)) {
+      block = []
+      continue
+    }
+    if (line.trim() !== '') lead = line
     const found = bangsIn(line)
     if (found.length === 0) continue
     last = found[found.length - 1]
