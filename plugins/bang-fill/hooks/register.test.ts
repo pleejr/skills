@@ -55,6 +55,32 @@ test('a shell block introduced by the recommended line wins', () => {
   expect(lastBang(decision)).toBe('! ~/allow.sh x')
 })
 
+test('a script run handed over without its !, in a span or an unlabelled block, is offered', () => {
+  expect(lastBang('- Allow the probe, then tell me to continue:\n```\n~/.claude/bin/allow-permission.sh \'Bash(bash /tmp/p.sh)\'\n```'))
+    .toBe("! ~/.claude/bin/allow-permission.sh 'Bash(bash /tmp/p.sh)'")
+  expect(lastBang('Then run `bash /tmp/scratch/probe.sh` and tell me.')).toBe('! bash /tmp/scratch/probe.sh')
+  expect(lastBang('Run `./scripts-repo/ci.sh`.')).toBe('! ./scripts-repo/ci.sh')
+})
+
+test('a permission update wins over a later command', () => {
+  expect(lastBang('Allow it with `~/.claude/bin/allow-permission.sh \'Bash(x)\'`.\n\n! bash ~/other.sh'))
+    .toBe("! ~/.claude/bin/allow-permission.sh 'Bash(x)'")
+})
+
+test('a ! command still wins over a script run written without one', () => {
+  expect(lastBang('! bash ~/a.sh\n\nIt calls `~/.claude/bin/helper.sh` internally.')).toBe('! bash ~/a.sh')
+})
+
+test('a cited path, a bare tool, or a labelled non-shell block is not a script run', () => {
+  expect(lastBang('See `default/bin/aws_access_grant.py:143` and run `terraform plan`.')).toBeUndefined()
+  expect(lastBang('```\nterraform plan\n```')).toBeUndefined()
+  expect(lastBang('```python\n~/x.py\n```')).toBeUndefined()
+})
+
+test('a labelled block closes, so a ! line after it is still offered', () => {
+  expect(lastBang('```json\n{"a": 1}\n```\n\n! bash ~/after.sh')).toBe('! bash ~/after.sh')
+})
+
 const turn = (answer: string) => ({ answer, reason: 'answer' as const, durationMs: 1, isAborted: false, turnId: 't' })
 const guess = { text: 'I typed it', origin: { kind: 'suggestion' as const } }
 

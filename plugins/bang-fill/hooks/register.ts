@@ -8,19 +8,30 @@ const BANG = /^\s*`?(!\s*\S.*?)`?\s*$/
 const SPAN = /`(!\s+[^`\s][^`]*)`/g
 // A fenced shell block opens with ```sh, ```bash, ```zsh or ```shell; any ``` closes it.
 const SHELL_FENCE = /^\s*```\s*(?:sh|bash|zsh|shell)\s*$/i
+// An unlabelled block: its one command counts when it starts with `!` or runs a script.
+const BARE_FENCE = /^\s*```\s*$/
 const FENCE = /^\s*```/
+// Any inline code span, for a script run handed over without its `!`.
+const CODE = /`([^`]+)`/g
+// A script run: a path to a script, optionally after its interpreter. The path is
+// absolute, home- or dot-relative, and names a script file or something in a bin/
+// folder, so a repo-relative `bin/x.py:143` cited in prose is not one, and neither
+// is a bare tool like `terraform plan`.
+const SCRIPT_RUN = /^(?:(?:bash|sh|zsh|python3?|node|bun|ruby)\s+)?(?:~|\$HOME|\.\.?)?\/[^\s`]*(?:\.(?:sh|bash|zsh|py|ts|js|mjs|rb)|\/bin\/[^\s/`]+)(?=\s|$)/
+// A permission update: the allow-permission.sh handover that unblocks a refused call.
+const PERMISSION = /(?:^|[\s/])allow-permission\.sh(?:\s|$)/
 
 function normalize(command: string): string {
   return command.trim().replace(/^!\s*/, '! ')
 }
 
-// A shell block holding one command, its `\` continuations joined. A block of
-// several commands, or only a comment, is a script to read rather than a
-// command to run, so it hands over nothing.
-function fencedCommand(body: string[]): string | undefined {
+// One command from a block, its `\` continuations joined. A block of several
+// commands, or only a comment, is a script to read rather than a command to
+// run, so it hands over nothing.
+function blockCommand(body: string[]): string | undefined {
   const lines = body.join('\n').replace(/\\\n\s*/g, '').split('\n').map(l => l.trim()).filter(l => l !== '')
   if (lines.length !== 1 || lines[0].startsWith('#')) return undefined
-  return normalize(lines[0].startsWith('!') ? lines[0] : `! ${lines[0]}`)
+  return lines[0]
 }
 
 // The commands a line hands over, in order: the whole line, or its `! ` spans.
@@ -30,14 +41,23 @@ function bangsIn(line: string): string[] {
   return [...line.matchAll(SPAN)].map(m => normalize(m[1]))
 }
 
-// The last handed-over command, unless a line marked recommended carries one:
-// a Decision block lists its recommended option first, so "last" would offer
-// the alternative. A one-command shell block counts as a line of its own, and
-// is recommended when the line introducing it is.
+// Script runs a line hands over in code spans written without a `!`.
+function scriptRunsIn(line: string): string[] {
+  return [...line.matchAll(CODE)].map(m => m[1].trim()).filter(c => SCRIPT_RUN.test(c)).map(c => `! ${c}`)
+}
+
+type Offer = { command: string; explicit: boolean; recommended: boolean }
+
+// The command to offer. A permission update wins outright, since it is what
+// unblocks the turn; then a line marked recommended (a Decision block lists its
+// recommended option first, so "last" would offer the alternative); then the
+// last `!` command; then the last script run written without one. A one-command
+// block counts as a line of its own, and is recommended when the line
+// introducing it is.
 export function lastBang(answer: string): string | undefined {
-  let last: string | undefined
-  let recommended: string | undefined
+  const offers: Offer[] = []
   let block: string[] | undefined
+  let kind: 'shell' | 'bare' | 'other' = 'other'
   let lead = ''
   for (const line of answer.split('\n')) {
     if (block !== undefined) {
@@ -45,24 +65,32 @@ export function lastBang(answer: string): string | undefined {
         block.push(line)
         continue
       }
-      const command = fencedCommand(block)
+      const command = blockCommand(block)
+      const body = block
       block = undefined
-      if (command === undefined) continue
-      last = command
-      if (/\brecommended\b/i.test(lead)) recommended = command
+      const recommended = /\brecommended\b/i.test(lead)
+      if (kind !== 'other' && command !== undefined && (kind === 'shell' || command.startsWith('!'))) {
+        offers.push({ command: normalize(command.startsWith('!') ? command : `! ${command}`), explicit: true, recommended })
+      } else if (kind === 'bare' && command !== undefined && SCRIPT_RUN.test(command)) {
+        offers.push({ command: `! ${command}`, explicit: false, recommended })
+      } else if (kind !== 'shell') {
+        for (const l of body) for (const c of bangsIn(l)) offers.push({ command: c, explicit: true, recommended: false })
+      }
       continue
     }
-    if (SHELL_FENCE.test(line)) {
+    if (FENCE.test(line)) {
       block = []
+      kind = SHELL_FENCE.test(line) ? 'shell' : BARE_FENCE.test(line) ? 'bare' : 'other'
       continue
     }
     if (line.trim() !== '') lead = line
-    const found = bangsIn(line)
-    if (found.length === 0) continue
-    last = found[found.length - 1]
-    if (/\brecommended\b/i.test(line)) recommended = last
+    const recommended = /\brecommended\b/i.test(line)
+    const bangs = bangsIn(line)
+    for (const command of bangs) offers.push({ command, explicit: true, recommended })
+    if (bangs.length === 0) for (const command of scriptRunsIn(line)) offers.push({ command, explicit: false, recommended })
   }
-  return recommended ?? last
+  const last = (keep: (o: Offer) => boolean) => offers.filter(keep).at(-1)?.command
+  return last(o => PERMISSION.test(o.command)) ?? last(o => o.recommended) ?? last(o => o.explicit) ?? last(() => true)
 }
 
 // The command on offer since the last answer. The engine generates its own
