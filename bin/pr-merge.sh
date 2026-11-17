@@ -35,6 +35,11 @@
 # Env: PR_MERGE_REGISTER_TIMEOUT (default 180s), PR_MERGE_CHECKS_TIMEOUT (default 1800s)
 set -euo pipefail
 
+# This script's own absolute path, for the rerun line printed when the caller's cwd keeps a
+# worktree: a relative $0 would not resolve from the primary checkout.
+SELF="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
+CWD_KEPT=0
+
 STRATEGY=squash
 ADMIN=--admin
 KEEP_WORKTREE=0
@@ -106,7 +111,8 @@ fi
 # The primary checkout is the first entry of `worktree list`; every local step runs
 # against it with `git -C`, never a `cd` -- both because the PreToolUse worktree gate
 # reads the command's stated path rather than the shell's cwd, and because this script
-# is routinely invoked from a worktree that it is about to delete.
+# is routinely invoked from inside the worktree holding the merged branch (which it then
+# keeps; see the caller's-cwd case at the worktree retire step).
 PRIMARY=""
 if [ "$LOCAL" = 1 ]; then
   PRIMARY=$(git worktree list --porcelain | awk '/^worktree /{print substr($0,10); exit}')
@@ -329,6 +335,24 @@ if [ -n "$WT" ] && [ "$KEEP_WORKTREE" = 0 ]; then
     say "KEEPING worktree $WT — uncommitted changes present"
   elif [ "$(git -C "$WT" rev-parse HEAD)" != "$HEADSHA" ]; then
     say "KEEPING worktree $WT — local tip is not the merged commit ($HEADSHA)"
+  elif case "$(/bin/pwd -P)/" in "$(cd "$WT" && /bin/pwd -P)"/*) true ;; *) false ;; esac; then
+    # The caller's shell is inside the worktree. Removing it deletes that shell's working
+    # directory, which this script cannot move back out of, and Claude Code then refuses
+    # the caller's next Bash call outright ("Working directory ... no longer exists, so
+    # this command was not run") -- hit twice in one session on 2026-11-16. Keep it and
+    # print the rerun: this script is idempotent, and a rerun from the primary checkout
+    # takes the MERGED branch straight to this cleanup. Physical paths on both sides, read
+    # by /bin/pwd so neither a /tmp -> /private/tmp symlink nor the letter case a shell
+    # was entered with on a case-insensitive disk can hide the match. The rerun is two
+    # commands: a cwd guard reading the cwd from before the call never sees a same-line cd.
+    CWD_KEPT=1
+    if [ "$DRY" = 1 ]; then
+      say "would keep worktree $WT — it is this shell's working directory"
+    else
+      say "KEEPING worktree $WT — it is this shell's working directory; finish cleanup with two commands:"
+      say "  cd $(printf %q "$PRIMARY")"
+      say "  $(printf %q "$SELF") --repo $SLUG $NUM"
+    fi
   else
     # `git worktree remove` refuses outright when the worktree contains an initialised
     # submodule -- "fatal: working trees containing submodules cannot be moved or
@@ -371,7 +395,7 @@ if git -C "$PRIMARY" show-ref --verify --quiet "refs/heads/$HEAD"; then
   if [ "$CUR" = "$HEAD" ]; then
     say "kept local branch $HEAD — checked out in the primary checkout $PRIMARY"
     say "  switch it away and re-run to finish cleanup: git -C $PRIMARY switch $BASE"
-  elif [ -z "$WT" ] || [ "$DRY" = 1 ]; then
+  elif [ -z "$WT" ]; then
     run git -C "$PRIMARY" branch -D "$HEAD"
     say "deleted local branch $HEAD"
   else
@@ -394,6 +418,8 @@ fi
 
 if [ "$OFFLINE" = 1 ]; then
   say "done with warnings — merged, local cleanup finished, network steps skipped — $(jq -r .url <<<"$META")"
+elif [ "$CWD_KEPT" = 1 ] && [ "$DRY" = 0 ]; then
+  say "done — merged; worktree cleanup pending (see above) — $(jq -r .url <<<"$META")"
 else
   say "done — $(jq -r .url <<<"$META")"
 fi
