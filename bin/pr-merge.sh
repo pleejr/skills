@@ -329,6 +329,16 @@ if [ -n "$WT" ] && [ "$KEEP_WORKTREE" = 0 ]; then
     say "KEEPING worktree $WT — uncommitted changes present"
   elif [ "$(git -C "$WT" rev-parse HEAD)" != "$HEADSHA" ]; then
     say "KEEPING worktree $WT — local tip is not the merged commit ($HEADSHA)"
+  elif case "$(pwd -P)/" in "$(cd "$WT" && pwd -P)"/*) true ;; *) false ;; esac; then
+    # The caller's shell is inside the worktree. Removing it deletes that shell's working
+    # directory, which this script cannot move back out of, and Claude Code then refuses
+    # the caller's next Bash call outright ("Working directory ... no longer exists, so
+    # this command was not run") -- hit twice in one session on 2026-11-16. Keep it and
+    # print the rerun: this script is idempotent, and a rerun from the primary checkout
+    # takes the MERGED branch straight to this cleanup. Physical paths on both sides, so
+    # a /tmp -> /private/tmp symlink cannot hide the match.
+    say "KEEPING worktree $WT — it is this shell's working directory; finish cleanup from the primary:"
+    say "  cd $PRIMARY && $0 --repo $SLUG $NUM"
   else
     # `git worktree remove` refuses outright when the worktree contains an initialised
     # submodule -- "fatal: working trees containing submodules cannot be moved or
