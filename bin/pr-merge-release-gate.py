@@ -53,6 +53,14 @@ def cannot_check(msg):
 
 def unquote(value):
     value = value.strip()
+    # An unquoted trailing comment, as `source` would drop it: KEY="a b"  # note
+    if value[:1] in "\"'":
+        end = value.find(value[0], 1)
+        if end > 0:
+            value = value[: end + 1]
+    else:
+        value = re.split(r"\s+#", value, maxsplit=1)[0]
+    value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
         value = value[1:-1].strip()
     return value
@@ -64,7 +72,7 @@ def config(key):
     Tolerates `export KEY=` and one layer of matching quotes, so a quoted value cannot
     turn "o/a o/b" into entries that silently match nothing.
     """
-    if key in os.environ:
+    if os.environ.get(key, "").strip():
         return unquote(os.environ[key])
     value = ""
     try:
@@ -113,24 +121,29 @@ def slack(method, tok, **params):
 
 
 def message_text(msg):
-    """Every string in the message: text, blocks, attachments (titles, fields), files.
-
-    Reading the whole payload can only add matches, which holds more often, never less.
-    """
+    """The text-bearing strings anywhere in the message: text, blocks, attachments
+    (titles, fields), files' titles and previews."""
     parts = []
 
     def walk(node):
-        if isinstance(node, str):
-            parts.append(node)
-        elif isinstance(node, dict):
-            for v in node.values():
-                walk(v)
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if isinstance(v, str):
+                    if k in TEXT_KEYS:
+                        parts.append(v)
+                else:
+                    walk(v)
         elif isinstance(node, list):
             for v in node:
                 walk(v)
 
     walk(msg)
     return "\n".join(parts)
+
+
+# Only keys that carry what a person or integration wrote. Reading the whole payload also
+# matched file URLs, user profiles and reaction names, which would hold on metadata.
+TEXT_KEYS = {"text", "fallback", "pretext", "title", "value", "footer", "preview", "alt_text"}
 
 
 def gated(repo, listed):
@@ -154,6 +167,9 @@ def main():
     listed = config("PR_MERGE_RELEASE_GATE_REPOS")
     channel = config("PR_MERGE_RELEASE_CHANNEL")
     entries = [e for e in re.split(r"[,\s]+", listed) if e]
+    bad = [e for e in entries if not re.fullmatch(r"[A-Za-z0-9._/-]+", e)]
+    if bad:
+        cannot_check(f"PR_MERGE_RELEASE_GATE_REPOS has unparseable entries: {bad}")
     if channel and not entries:
         cannot_check("PR_MERGE_RELEASE_CHANNEL is set but PR_MERGE_RELEASE_GATE_REPOS lists no repos")
     if not gated(args.repo, listed):
@@ -187,7 +203,8 @@ def main():
     # Whole token: "api" must not match inside "api-v2", and the reverse. A separator in
     # the name also matches its spelling variants: "my-app" matches "my_app" and "my app".
     body_re = r"[-_ ]".join(re.escape(part) for part in re.split(r"[-_]", name))
-    pattern = re.compile(rf"(?<![A-Za-z0-9_-]){body_re}(?![A-Za-z0-9_-])", re.IGNORECASE)
+    # A trailing "-v1.2" or "-2026..." is a version on the same repo, so it still matches.
+    pattern = re.compile(rf"(?<![A-Za-z0-9_-]){body_re}(?![A-Za-z0-9_]|-(?!v?\d))", re.IGNORECASE)
 
     scanned, matches, cursor = 0, [], None
     while True:
@@ -237,4 +254,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except SystemExit:
+        raise
+    except Exception as exc:  # a crash is "could not check", never "held" or "clear"
+        cannot_check(f"unexpected {type(exc).__name__}: {exc}")
