@@ -3,12 +3,21 @@
 
 Some repos must not take a merge while their release is about to run or is running. The
 rule this enforces is deliberately simple, so no model has to judge it: if any top-level
-post in the release channel since local midnight names the repo, the merge is held. It
-never tries to work out whether that release has finished. The hold lasts until the next
-business day, and the check runs again then.
+post in the release channel since midnight names the repo, the merge is held. It never
+tries to work out whether that release has finished. The hold lasts until midnight; the
+next run checks the new day's posts.
 
-A match can be cleared for one run by citing its permalink with --cleared, after a person
-has read that release thread and confirmed it is finished. Every match must be cited.
+Matching is deliberately loose: a hyphen ends the name, so a repo is also held by posts
+about any repo whose name starts with it (`my-app` by `my-app-prod`). A false hold costs
+a day or a citation; a missed release costs a merge in the middle of it.
+
+Known gap: only today's posts are read. A release announced the evening before for this
+morning, or one running past midnight, is not seen; the rule this serves presumes a
+release is done by the next business day.
+
+A match can be cleared for one run by citing its permalink (pr-merge.sh --release-cleared,
+this script's --cleared) after a person has read that release thread and confirmed it is
+finished. Every match must be cited.
 
 Configuration (environment first, then ~/.claude/skill-config.env; values are read literally):
   PR_MERGE_RELEASE_GATE_REPOS  owner/name or bare repo names, comma or space separated
@@ -182,12 +191,12 @@ def main():
     if not tok:
         cannot_check(f"no Slack token (SLACK_BOT_TOKEN, keychain {KEYCHAIN_SERVICE}, or {LEGACY_TOKEN_FILE})")
 
+    tz = None
     if args.since is not None:
         since = args.since
     else:
         # Midnight built from the date, not by zeroing the clock: replace() keeps the
         # current UTC offset, which is wrong for midnight on a DST-change day.
-        tz = None
         tzname = config("USER_TIMEZONE")
         if tzname:
             try:
@@ -200,11 +209,11 @@ def main():
         since = (midnight if tz else midnight.astimezone()).timestamp()
 
     name = args.repo.split("/")[-1]
-    # Whole token: "api" must not match inside "api-v2", and the reverse. A separator in
-    # the name also matches its spelling variants: "my-app" matches "my_app" and "my app".
+    # Bounded by letters and digits only, so "-", "_" and markup end the name: "my-app"
+    # matches "my-app-v1.4", "prod-my-app", "_my-app_" and "my_app". Holding on a longer
+    # sibling name is accepted (see the docstring). "api" still never matches "rapid".
     body_re = r"[-_ ]".join(re.escape(part) for part in re.split(r"[-_]", name))
-    # A trailing "-v1.2" or "-2026..." is a version on the same repo, so it still matches.
-    pattern = re.compile(rf"(?<![A-Za-z0-9_-]){body_re}(?![A-Za-z0-9_]|-(?!v?\d))", re.IGNORECASE)
+    pattern = re.compile(rf"(?<![A-Za-z0-9]){body_re}(?![A-Za-z0-9])", re.IGNORECASE)
 
     scanned, matches, cursor = 0, [], None
     while True:
@@ -220,7 +229,10 @@ def main():
         if not cursor:
             break
 
-    since_iso = datetime.datetime.fromtimestamp(since).astimezone().isoformat(timespec="minutes")
+    def local(ts):
+        return datetime.datetime.fromtimestamp(ts, tz) if tz else datetime.datetime.fromtimestamp(ts).astimezone()
+
+    since_iso = local(since).isoformat(timespec="minutes")
     out(f"scanned {scanned} post(s) in {channel} since {since_iso} for {name!r}: {len(matches)} match(es)")
     if not matches:
         return 0
@@ -238,15 +250,18 @@ def main():
     held = []
     for msg in sorted(matches, key=lambda m: float(m["ts"])):
         link = slack("chat.getPermalink", tok, channel=channel, message_ts=msg["ts"])["permalink"]
-        when = datetime.datetime.fromtimestamp(float(msg["ts"])).astimezone().strftime("%H:%M %Z")
-        first = (msg.get("text") or "").strip().splitlines()[0][:100] if (msg.get("text") or "").strip() else ""
+        when = local(float(msg["ts"])).strftime("%H:%M %Z")
+        # Slack text is untrusted: drop control characters and quote it, so it can neither
+        # drive the terminal nor read as an instruction to whoever reads this output.
+        raw = (msg.get("text") or "").strip().splitlines()
+        first = repr("".join(c for c in raw[0] if c.isprintable())[:100]) if raw else "''"
         state = "cleared" if msg["ts"] in cleared else "HOLDS"
         out(f"  {state}  {when}  {link}  {first}")
         if msg["ts"] not in cleared:
             held.append(link)
 
     if held:
-        out(f"held: {len(held)} post(s) today name {name}; hold the merge to the next business day,"
+        out(f"held: {len(held)} post(s) today name {name}; hold the merge until tomorrow's check,"
             " or read each thread and pass --release-cleared <permalink> once it is finished")
         return 1
     out("every match cited as finished — clear")
