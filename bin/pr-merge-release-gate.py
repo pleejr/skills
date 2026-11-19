@@ -140,7 +140,7 @@ def main():
         since = midnight.timestamp()
 
     name = args.repo.split("/")[-1]
-    # Whole token: svc-core must not match inside svc-core-fd, and the reverse.
+    # Whole token: "api" must not match inside "api-v2", and the reverse.
     pattern = re.compile(rf"(?<![A-Za-z0-9_-]){re.escape(name)}(?![A-Za-z0-9_-])", re.IGNORECASE)
 
     scanned, matches, cursor = 0, [], None
