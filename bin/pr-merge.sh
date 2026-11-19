@@ -32,6 +32,12 @@
 #   bin/pr-merge.sh --dry-run           # print the plan, touch nothing
 #   bin/pr-merge.sh --strategy rebase --no-admin --keep-worktree
 #   bin/pr-merge.sh --skip-checks 27    # merge without waiting for or reading checks
+#   bin/pr-merge.sh --release-cleared <permalink> 27   # cite a release post read as finished
+#
+# Release gate: a repo listed in PR_MERGE_RELEASE_GATE_REPOS (skill-config.env) is refused
+# while any post in PR_MERGE_RELEASE_CHANNEL since local midnight names it, unless each such
+# post is cited with --release-cleared. It runs before the checks wait and again right
+# before the merge, and fails closed. See bin/pr-merge-release-gate.py.
 # Env: PR_MERGE_REGISTER_TIMEOUT (default 180s), PR_MERGE_CHECKS_TIMEOUT (default 1800s)
 set -euo pipefail
 
@@ -45,6 +51,7 @@ ADMIN=--admin
 KEEP_WORKTREE=0
 DRY=0
 SKIP_CHECKS=0
+RELEASE_CLEARED=()
 PR=""
 REPO=""
 REGISTER_TIMEOUT=${PR_MERGE_REGISTER_TIMEOUT:-180}
@@ -61,8 +68,9 @@ while [ $# -gt 0 ]; do
     --keep-worktree) KEEP_WORKTREE=1; shift ;;
     --dry-run|-n) DRY=1; shift ;;
     --skip-checks) SKIP_CHECKS=1; shift ;;
+    --release-cleared) [ -n "${2:-}" ] || die "--release-cleared needs a permalink"; RELEASE_CLEARED+=(--cleared "$2"); shift 2 ;;
     --repo) REPO="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,35p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,41p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) die "unknown flag: $1" ;;
     *) PR="$1"; shift ;;
   esac
@@ -173,7 +181,7 @@ expected_checks() {
 # Wait until every expected check has registered on this PR, up to REGISTER_TIMEOUT.
 #
 # The failure this exists to prevent: an external status registers long after the
-# workflow checks. On infra-aws-tf-ww-ou#97 (2026-10-22) the Actions checks finished at
+# workflow checks. On one Terraform repo's PR (2026-10-22) the Actions checks finished at
 # 16:49:36Z, the settle re-read saw them all green, and the Terraform Cloud status first
 # appeared at 16:49:56Z, one second before the --admin merge. A missing expected check
 # only warns once the timeout passes, since a renamed or retired check is legitimate.
@@ -244,8 +252,19 @@ wait_for_checks() {
   say "checks green: $(wc -l <<<"$buckets" | tr -d ' ') registered, none failed"
 }
 
+# Release gate. Exit 1 (held) and 2 (could not check) both refuse; a dry run reports the
+# verdict and carries on, since it changes nothing.
+release_gate() {
+  local rc=0
+  python3 "$(dirname "$SELF")/pr-merge-release-gate.py" --repo "$SLUG" ${RELEASE_CLEARED[@]+"${RELEASE_CLEARED[@]}"} || rc=$?
+  [ "$rc" = 0 ] && return 0
+  if [ "$DRY" = 1 ]; then say "dry run — the release gate would refuse (exit $rc)"; return 0; fi
+  die "refusing to merge #$NUM — release gate exit $rc (1 held, 2 could not check)"
+}
+
 case "$STATE" in
   OPEN)
+    release_gate
     if [ "$SKIP_CHECKS" = 1 ]; then
       say "--skip-checks — merging without reading checks"
     else
@@ -254,6 +273,8 @@ case "$STATE" in
     # --repo keeps gh entirely on the API: no local checkout, no branch switch, nothing
     # to collide with the worktree. --delete-branch is deliberately NOT passed; the
     # remote ref is deleted below, after the merge is confirmed rather than assumed.
+    # Again, right before the merge: the checks wait can run for half an hour.
+    [ "$SKIP_CHECKS" = 1 ] || release_gate
     run gh pr merge "$NUM" --repo "$SLUG" "--$STRATEGY" ${ADMIN:+$ADMIN}
     ;;
   MERGED) say "already merged — continuing to cleanup (this script is idempotent)" ;;
