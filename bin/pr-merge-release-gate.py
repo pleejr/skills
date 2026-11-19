@@ -36,7 +36,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-CONFIG = os.path.expanduser("~/.claude/skill-config.env")
+CONFIG = os.path.expanduser(os.environ.get("SKILL_CONFIG") or "~/.claude/skill-config.env")
 KEYCHAIN_SERVICE = "claude-slack-bot-token"
 LEGACY_TOKEN_FILE = os.path.expanduser("~/.claude/.slack-bot-token")
 PERMALINK_TS = re.compile(r"/p(\d{10})(\d{6})")
@@ -51,18 +51,33 @@ def cannot_check(msg):
     sys.exit(2)
 
 
+def unquote(value):
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1].strip()
+    return value
+
+
 def config(key):
-    if os.environ.get(key):
-        return os.environ[key]
+    """Env var, else the LAST assignment in the config file (as sourcing would take it).
+
+    Tolerates `export KEY=` and one layer of matching quotes, so a quoted value cannot
+    turn "o/a o/b" into entries that silently match nothing.
+    """
+    if key in os.environ:
+        return unquote(os.environ[key])
+    value = ""
     try:
         with open(CONFIG) as fh:
             for line in fh:
                 line = line.strip()
+                if line.startswith("export "):
+                    line = line[len("export "):].lstrip()
                 if line.startswith(f"{key}="):
-                    return line.split("=", 1)[1]
+                    value = unquote(line.split("=", 1)[1])
     except FileNotFoundError:
         pass
-    return ""
+    return value
 
 
 def token():
@@ -98,9 +113,23 @@ def slack(method, tok, **params):
 
 
 def message_text(msg):
-    parts = [msg.get("text") or ""]
-    for att in msg.get("attachments") or []:
-        parts += [att.get("text") or "", att.get("fallback") or "", att.get("pretext") or ""]
+    """Every string in the message: text, blocks, attachments (titles, fields), files.
+
+    Reading the whole payload can only add matches, which holds more often, never less.
+    """
+    parts = []
+
+    def walk(node):
+        if isinstance(node, str):
+            parts.append(node)
+        elif isinstance(node, dict):
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+
+    walk(msg)
     return "\n".join(parts)
 
 
@@ -122,11 +151,15 @@ def main():
 
     if "/" not in args.repo:
         cannot_check(f"--repo must be owner/name, got {args.repo!r}")
-    if not gated(args.repo, config("PR_MERGE_RELEASE_GATE_REPOS")):
-        out(f"{args.repo} is not release-gated")
+    listed = config("PR_MERGE_RELEASE_GATE_REPOS")
+    channel = config("PR_MERGE_RELEASE_CHANNEL")
+    entries = [e for e in re.split(r"[,\s]+", listed) if e]
+    if channel and not entries:
+        cannot_check("PR_MERGE_RELEASE_CHANNEL is set but PR_MERGE_RELEASE_GATE_REPOS lists no repos")
+    if not gated(args.repo, listed):
+        out(f"{args.repo} is not release-gated (gated: {', '.join(entries) or 'none'})")
         return 0
 
-    channel = config("PR_MERGE_RELEASE_CHANNEL")
     if not channel:
         cannot_check(f"{args.repo} is release-gated but PR_MERGE_RELEASE_CHANNEL is not set")
     tok = token()
@@ -136,12 +169,25 @@ def main():
     if args.since is not None:
         since = args.since
     else:
-        midnight = datetime.datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
-        since = midnight.timestamp()
+        # Midnight built from the date, not by zeroing the clock: replace() keeps the
+        # current UTC offset, which is wrong for midnight on a DST-change day.
+        tz = None
+        tzname = config("USER_TIMEZONE")
+        if tzname:
+            try:
+                from zoneinfo import ZoneInfo
+                tz = ZoneInfo(tzname)
+            except Exception:
+                cannot_check(f"USER_TIMEZONE={tzname!r} is not a known time zone")
+        today = datetime.datetime.now(tz).date()
+        midnight = datetime.datetime.combine(today, datetime.time(), tzinfo=tz)
+        since = (midnight if tz else midnight.astimezone()).timestamp()
 
     name = args.repo.split("/")[-1]
-    # Whole token: "api" must not match inside "api-v2", and the reverse.
-    pattern = re.compile(rf"(?<![A-Za-z0-9_-]){re.escape(name)}(?![A-Za-z0-9_-])", re.IGNORECASE)
+    # Whole token: "api" must not match inside "api-v2", and the reverse. A separator in
+    # the name also matches its spelling variants: "my-app" matches "my_app" and "my app".
+    body_re = r"[-_ ]".join(re.escape(part) for part in re.split(r"[-_]", name))
+    pattern = re.compile(rf"(?<![A-Za-z0-9_-]){body_re}(?![A-Za-z0-9_-])", re.IGNORECASE)
 
     scanned, matches, cursor = 0, [], None
     while True:
@@ -165,9 +211,12 @@ def main():
     cleared = set()
     for link in args.cleared:
         m = PERMALINK_TS.search(link)
-        if not m:
-            cannot_check(f"--cleared {link!r} is not a Slack permalink")
+        if not m or f"/archives/{channel}/" not in link:
+            cannot_check(f"--cleared {link!r} is not a permalink to a post in {channel}")
         cleared.add(f"{m.group(1)}.{m.group(2)}")
+    unused = cleared - {msg["ts"] for msg in matches}
+    for ts in sorted(unused):
+        out(f"  warning: --cleared {ts} matches no post naming {name} today; it clears nothing")
 
     held = []
     for msg in sorted(matches, key=lambda m: float(m["ts"])):

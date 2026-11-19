@@ -68,9 +68,9 @@ while [ $# -gt 0 ]; do
     --keep-worktree) KEEP_WORKTREE=1; shift ;;
     --dry-run|-n) DRY=1; shift ;;
     --skip-checks) SKIP_CHECKS=1; shift ;;
-    --release-cleared) RELEASE_CLEARED+=(--cleared "${2:-}"); shift 2 ;;
+    --release-cleared) [ -n "${2:-}" ] || die "--release-cleared needs a permalink"; RELEASE_CLEARED+=(--cleared "$2"); shift 2 ;;
     --repo) REPO="${2:-}"; shift 2 ;;
-    -h|--help) sed -n '2,42p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,41p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) die "unknown flag: $1" ;;
     *) PR="$1"; shift ;;
   esac
@@ -181,7 +181,7 @@ expected_checks() {
 # Wait until every expected check has registered on this PR, up to REGISTER_TIMEOUT.
 #
 # The failure this exists to prevent: an external status registers long after the
-# workflow checks. On infra-aws-tf-ww-ou#97 (2026-10-22) the Actions checks finished at
+# workflow checks. On one Terraform repo's PR (2026-10-22) the Actions checks finished at
 # 16:49:36Z, the settle re-read saw them all green, and the Terraform Cloud status first
 # appeared at 16:49:56Z, one second before the --admin merge. A missing expected check
 # only warns once the timeout passes, since a renamed or retired check is legitimate.
