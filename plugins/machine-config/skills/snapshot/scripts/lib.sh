@@ -10,7 +10,7 @@
 #   2. ~/.claude/machine-config-repo — a one-line pointer file, written once per machine
 # Nothing is guessed: a wrong guess would snapshot into, or restore from, the wrong repo.
 mc_repo() {
-  local cfg="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+  local cfg; cfg="$(mc_cfg)"
   if [ -n "${MACHINE_CONFIG_REPO:-}" ]; then printf '%s\n' "$MACHINE_CONFIG_REPO"; return 0; fi
   if [ -f "$cfg/machine-config-repo" ]; then
     local p; p="$(tr -d '[:space:]' < "$cfg/machine-config-repo")"
@@ -31,18 +31,20 @@ mc_repo_or_die() {
   printf '%s\n' "$r"
 }
 
-mc_cfg() { printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; }
+mc_cfg() { local c="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; case "$c" in "~/"*) c="$HOME/${c#\~/}" ;; esac; printf '%s\n' "$c"; }
 
 # Where this machine keeps its git clones — backup.sh records each one's remote so restore.sh
 # can print a clone list. Precedence: $MC_REPOS_DIR, then REPOS_DIR in the config dir's
-# skill-config.env (one KEY=value line, optionally `export`ed, quoted, or carrying a trailing
+# skill-config.env ($SKILL_CONFIG when set; one KEY=value line, optionally `export`ed, quoted, or carrying a trailing
 # comment), then ~/Documents/repos.
-if [ -z "${MC_REPOS_DIR:-}" ] && [ -r "$(mc_cfg)/skill-config.env" ]; then
-  MC_REPOS_DIR="$(tr -d '\r' < "$(mc_cfg)/skill-config.env" \
+MC_SKILL_CONFIG="${SKILL_CONFIG:-$(mc_cfg)/skill-config.env}"
+if [ -z "${MC_REPOS_DIR:-}" ] && [ -r "$MC_SKILL_CONFIG" ]; then
+  MC_REPOS_DIR="$(tr -d '\r' < "$MC_SKILL_CONFIG" \
     | sed -n -E 's/^[[:space:]]*(export[[:space:]]+)?REPOS_DIR=//p' | tail -1 \
     | sed -E -e 's/[[:space:]]+#.*$//' -e 's/[[:space:]]+$//' \
         -e 's/^"(.*)"$/\1/' -e "s/^'(.*)'$/\1/")"
   case "$MC_REPOS_DIR" in
+    "~"|'$HOME'|'${HOME}') MC_REPOS_DIR="$HOME" ;;
     "~/"*) MC_REPOS_DIR="$HOME/${MC_REPOS_DIR#\~/}" ;;
     '$HOME/'*) MC_REPOS_DIR="$HOME/${MC_REPOS_DIR#\$HOME/}" ;;
     '${HOME}/'*) MC_REPOS_DIR="$HOME/${MC_REPOS_DIR#\$\{HOME\}/}" ;;

@@ -81,7 +81,7 @@ A new skill that shadows an existing description degrades *both*. Before committ
 - After adding/renaming/removing a skill, regenerate the README table: `bin/gen-readme-skills.sh` (writes between the `<!-- skills:start -->` / `:end -->` sentinels from each `summary`).
 - For live development, add the marketplace from your clone (`claude plugin marketplace add <skills clone>`): a directory marketplace runs its plugins in place, so an edit is live in the next session.
 - Reference bundled scripts as `scripts/<file>` relative to the skill directory. When a body must give an absolute path, prefer the plugin's bare `bin/` command, or `${CLAUDE_SKILL_DIR}/scripts/<file>`; never spell `~/.claude/skills/<name>`: a plugin install has no such directory, and the checkout path differs per machine.
-- Environment-specific values go in `~/.claude/skill-config.env` (`KEY=value`), resolved first-found-wins (flag → env → config). Secrets (tokens, webhooks) live in their own chmod-600 files, never in this repo or in `skill-config.env`.
+- Environment-specific values go in `${CLAUDE_CONFIG_DIR:-~/.claude}/skill-config.env` (`KEY=value`), resolved first-found-wins (flag → env → config). Secrets (tokens, webhooks) live in their own chmod-600 files, never in this repo or in `skill-config.env`.
 
 ## 7. Delegate the eval loop to skill-creator — measure with `scripts/trigger_eval.py`
 

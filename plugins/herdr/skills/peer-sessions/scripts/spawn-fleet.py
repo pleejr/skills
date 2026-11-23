@@ -76,7 +76,10 @@ def boundary_env():
     args = []
     for var in OPTIONAL_VARS:
         if os.environ.get(var):
-            args += ["--env", f"{var}={os.environ[var]}"]
+            value = os.environ[var]
+            if var == "CLAUDE_CONFIG_DIR":
+                value = os.path.expanduser(value)
+            args += ["--env", f"{var}={value}"]
     for var in BOUNDARY_VARS:
         args += ["--env", f"{var}={os.environ.get(var, '')}"]
     return args
