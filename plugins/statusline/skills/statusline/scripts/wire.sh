@@ -35,7 +35,7 @@ here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT="$here/statusline.sh"
 DESIRED="$MARKER \"$SCRIPT\""
 
-CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; case "$CFG" in "~/"*) CFG="$HOME/${CFG#\~/}" ;; esac
 SETTINGS="$CFG/settings.json"
 STATE="${CLAUDE_PLUGIN_DATA:-$CFG/statusline}"
 PREV="$STATE/previous-statusline.json"

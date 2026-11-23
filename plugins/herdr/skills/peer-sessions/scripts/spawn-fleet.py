@@ -67,7 +67,8 @@ CLAUDE_CONFIG = (
 # GIT_SSH_COMMAND would override a user's core.sshCommand. The rest always pass: the caller's
 # value, else empty, which their consumers treat as unset.
 # Limit: --env cannot unset a variable, so a CLAUDE_CONFIG_DIR or GIT_SSH_COMMAND that the herdr
-# server inherited still reaches the pane when this caller has none.
+# server inherited still reaches the pane when this caller has none. These values land on herdr's
+# argv, where `ps` shows them: they are paths, so keep credentials out of GIT_SSH_COMMAND.
 BOUNDARY_VARS = ("GH_CONFIG_DIR", "WIKI_PATH", "MC_REPOS_DIR")
 OPTIONAL_VARS = ("CLAUDE_CONFIG_DIR", "GIT_SSH_COMMAND")
 
@@ -78,7 +79,7 @@ def boundary_env():
         if os.environ.get(var):
             value = os.environ[var]
             if var == "CLAUDE_CONFIG_DIR":
-                value = os.path.expanduser(value)
+                value = os.path.abspath(os.path.expanduser(value))
             args += ["--env", f"{var}={value}"]
     for var in BOUNDARY_VARS:
         args += ["--env", f"{var}={os.environ.get(var, '')}"]

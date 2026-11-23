@@ -7,7 +7,7 @@
 
 # Where the config-repo path is remembered, in precedence order:
 #   1. $MACHINE_CONFIG_REPO         — explicit, wins (useful for tests and one-offs)
-#   2. ~/.claude/machine-config-repo — a one-line pointer file, written once per machine
+#   2. machine-config-repo in ${CLAUDE_CONFIG_DIR:-~/.claude} — a one-line pointer file, written once per machine
 # Nothing is guessed: a wrong guess would snapshot into, or restore from, the wrong repo.
 mc_repo() {
   local cfg; cfg="$(mc_cfg)"
@@ -23,7 +23,7 @@ mc_repo() {
 mc_repo_or_die() {
   local r; r="$(mc_repo)" || {
     echo "machine-config: no config repo set." >&2
-    echo "  Point at one:  echo /path/to/config-repo > ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/machine-config-repo" >&2
+    echo "  Point at one:  echo /path/to/config-repo > $(mc_cfg)/machine-config-repo" >&2
     echo "  Or create one: scripts/init.sh /path/to/config-repo" >&2
     return 2
   }
@@ -38,6 +38,7 @@ mc_cfg() { local c="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; case "$c" in "~/"*) c=
 # skill-config.env ($SKILL_CONFIG when set; one KEY=value line, optionally `export`ed, quoted, or carrying a trailing
 # comment), then ~/Documents/repos.
 MC_SKILL_CONFIG="${SKILL_CONFIG:-$(mc_cfg)/skill-config.env}"
+case "$MC_SKILL_CONFIG" in "~/"*) MC_SKILL_CONFIG="$HOME/${MC_SKILL_CONFIG#\~/}" ;; esac
 if [ -z "${MC_REPOS_DIR:-}" ] && [ -r "$MC_SKILL_CONFIG" ]; then
   MC_REPOS_DIR="$(tr -d '\r' < "$MC_SKILL_CONFIG" \
     | sed -n -E 's/^[[:space:]]*(export[[:space:]]+)?REPOS_DIR=//p' | tail -1 \
