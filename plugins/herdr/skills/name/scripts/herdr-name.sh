@@ -13,7 +13,9 @@
 
 set -uo pipefail
 
-STATE_DIR="${HERDR_NAME_STATE_DIR:-$HOME/.claude/state/herdr-name}"
+# State lives in the session's config dir, so each boundary keeps its own saved originals; a
+# space named from another config dir (or before this moved off ~/.claude) resets only from there.
+STATE_DIR="${HERDR_NAME_STATE_DIR:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/state/herdr-name}"
 SOURCE_ID="herdr:claude-name"
 # The label cuts off at 32 characters; 32-character topics were seen cut off
 # too (2026-10-08), so hold the topic to 28. Fit the strings here, on whole word boundaries, rather than let

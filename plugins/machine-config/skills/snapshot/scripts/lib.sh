@@ -34,7 +34,20 @@ mc_repo_or_die() {
 mc_cfg() { printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; }
 
 # Where this machine keeps its git clones — backup.sh records each one's remote so restore.sh
-# can print a clone list. Override for any other layout; the default is only a default.
+# can print a clone list. Precedence: $MC_REPOS_DIR, then REPOS_DIR in the config dir's
+# skill-config.env (one KEY=value line, optionally `export`ed, quoted, or carrying a trailing
+# comment), then ~/Documents/repos.
+if [ -z "${MC_REPOS_DIR:-}" ] && [ -r "$(mc_cfg)/skill-config.env" ]; then
+  MC_REPOS_DIR="$(tr -d '\r' < "$(mc_cfg)/skill-config.env" \
+    | sed -n -E 's/^[[:space:]]*(export[[:space:]]+)?REPOS_DIR=//p' | tail -1 \
+    | sed -E -e 's/[[:space:]]+#.*$//' -e 's/[[:space:]]+$//' \
+        -e 's/^"(.*)"$/\1/' -e "s/^'(.*)'$/\1/")"
+  case "$MC_REPOS_DIR" in
+    "~/"*) MC_REPOS_DIR="$HOME/${MC_REPOS_DIR#\~/}" ;;
+    '$HOME/'*) MC_REPOS_DIR="$HOME/${MC_REPOS_DIR#\$HOME/}" ;;
+    '${HOME}/'*) MC_REPOS_DIR="$HOME/${MC_REPOS_DIR#\$\{HOME\}/}" ;;
+  esac
+fi
 MC_REPOS_DIR="${MC_REPOS_DIR:-$HOME/Documents/repos}"
 mc_host() { printf '%s\n' "${MACHINE_CONFIG_HOST:-$(hostname -s)}"; }
 

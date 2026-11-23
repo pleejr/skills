@@ -44,7 +44,7 @@ Each argument is `NAME:DIR`; the name becomes both the herdr agent name and `cla
 | `tab` | new tabs in your workspace | 3+ peers, all in one space |
 | `workspace` | new workspaces (the default) | a large fleet, or work you want separated |
 
-**Trust comes first.** `claude` records trust per **exact** directory path in `~/.claude.json`, and a subdirectory does not inherit it. A peer started in an untrusted directory stops on the folder-trust prompt, registers no socket, and nothing you send reaches it. `spawn-fleet.py` warns before it builds anything: point the fleet at directories the user already works in, or say upfront that they must answer one prompt per pane.
+**Trust comes first.** `claude` records trust per **exact** directory path in `.claude.json` (inside `$CLAUDE_CONFIG_DIR` when set, else `~`), and a subdirectory does not inherit it. A peer started in an untrusted directory stops on the folder-trust prompt, registers no socket, and nothing you send reaches it. `spawn-fleet.py` warns before it builds anything: point the fleet at directories the user already works in, or say upfront that they must answer one prompt per pane.
 
 Reading the result:
 

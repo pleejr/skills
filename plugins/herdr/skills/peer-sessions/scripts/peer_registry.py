@@ -7,12 +7,10 @@ import os
 import socket
 
 
-SESSIONS = os.environ.get(
-    "CLAUDE_SESSIONS_DIR", os.path.expanduser("~/.claude/sessions")
-)
-PROJECTS = os.environ.get(
-    "CLAUDE_PROJECTS_DIR", os.path.expanduser("~/.claude/projects")
-)
+# Claude Code's config dir: CLAUDE_CONFIG_DIR when a launcher sets one, else ~/.claude.
+CONFIG_DIR = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR") or "~/.claude")
+SESSIONS = os.environ.get("CLAUDE_SESSIONS_DIR", os.path.join(CONFIG_DIR, "sessions"))
+PROJECTS = os.environ.get("CLAUDE_PROJECTS_DIR", os.path.join(CONFIG_DIR, "projects"))
 
 
 def parse_version(value):

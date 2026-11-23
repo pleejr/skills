@@ -19,13 +19,14 @@ A match can be cleared for one run by citing its permalink (pr-merge.sh --releas
 this script's --cleared) after a person has read that release thread and confirmed it is
 finished. Every match must be cited.
 
-Configuration (environment first, then ~/.claude/skill-config.env; values are read literally):
+Configuration (environment first, then $SKILL_CONFIG, else skill-config.env in $CLAUDE_CONFIG_DIR
+or ~/.claude; values are read literally):
   PR_MERGE_RELEASE_GATE_REPOS  owner/name or bare repo names, comma or space separated
   PR_MERGE_RELEASE_CHANNEL     the release channel's ID (the bot must be a member)
 A repo not listed is not gated. The code carries no repo or channel names.
 
 Token: SLACK_BOT_TOKEN, then the macOS keychain item claude-slack-bot-token, then
-~/.claude/.slack-bot-token. It needs channels:history (groups:history for a private channel).
+the .slack-bot-token file in the same config dir. It needs channels:history (groups:history for a private channel).
 The token is never printed.
 
 Fails closed: a gated repo with no channel configured, no token, or a Slack API error
@@ -45,9 +46,12 @@ import sys
 import urllib.parse
 import urllib.request
 
-CONFIG = os.path.expanduser(os.environ.get("SKILL_CONFIG") or "~/.claude/skill-config.env")
+# Claude Code's config dir: CLAUDE_CONFIG_DIR when a boundary launcher sets one, else ~/.claude.
+# Reading ~/.claude under a launcher finds no config, so every repo reads as not gated.
+CONFIG_DIR = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR") or "~/.claude")
+CONFIG = os.path.expanduser(os.environ.get("SKILL_CONFIG") or os.path.join(CONFIG_DIR, "skill-config.env"))
 KEYCHAIN_SERVICE = "claude-slack-bot-token"
-LEGACY_TOKEN_FILE = os.path.expanduser("~/.claude/.slack-bot-token")
+LEGACY_TOKEN_FILE = os.path.join(CONFIG_DIR, ".slack-bot-token")
 PERMALINK_TS = re.compile(r"/p(\d{10})(\d{6})")
 
 
