@@ -15,7 +15,7 @@ them. The layout side of a mixed fleet costs nothing extra.
 
 **The messages are the part that changes.** Cross-session peer messages are a
 `claude` feature. A `codex` or `gemini` agent registers no socket in
-`~/.claude/sessions/`, so `ListAgents` never lists it, `SendMessage` cannot address
+`${CLAUDE_CONFIG_DIR:-~/.claude}/sessions/`, so `ListAgents` never lists it, `SendMessage` cannot address
 it, and `peer-addr.py` cannot see it. None of that is a fault to debug.
 
 `spawn-fleet.py` starts `claude` peers only, on purpose: its whole readiness check is

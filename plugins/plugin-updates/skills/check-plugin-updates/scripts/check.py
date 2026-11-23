@@ -31,7 +31,7 @@ import subprocess
 import sys
 import time
 
-CFG = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+CFG = os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR") or "~/.claude")
 DATA = os.environ.get("CLAUDE_PLUGIN_DATA") or os.path.join(CFG, "plugin-updates")
 BUDGET = 20.0  # seconds of network per session; the hook's own timeout is 30
 GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_ASKPASS="/bin/echo", SSH_ASKPASS="/bin/echo",

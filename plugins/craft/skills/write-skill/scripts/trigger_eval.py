@@ -14,14 +14,15 @@ fails to trigger is reported as INSTRUMENT FAILURE, never as a description resul
 import argparse, json, os, pathlib, re, shutil, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
 
-SKILLS = pathlib.Path(os.path.expanduser("~/.claude/skills"))
-PLUGINS = pathlib.Path(os.path.expanduser("~/.claude/plugins"))
+CONFIG_DIR = pathlib.Path(os.path.expanduser(os.environ.get("CLAUDE_CONFIG_DIR") or "~/.claude"))
+SKILLS = CONFIG_DIR / "skills"
+PLUGINS = CONFIG_DIR / "plugins"
 
 
 def resolve_live(skill: str) -> pathlib.Path:
     """The directory the session actually loads <skill> from.
 
-    A bare name is a user-level skill in ~/.claude/skills/<name>. `plugin:name` is a
+    A bare name is a user-level skill in $CLAUDE_CONFIG_DIR/skills/<name> (default ~/.claude). `plugin:name` is a
     plugin skill: from a directory marketplace the session reads the source tree in
     place, so that is where it lives; otherwise the installed copy. Scoring a copy the
     session does not read would measure nothing.

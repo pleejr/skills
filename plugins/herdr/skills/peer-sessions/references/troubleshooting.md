@@ -40,7 +40,7 @@ is permission laundering, and refusing is the correct answer in both directions.
 Work down this list.
 
 **The folder-trust prompt.** The commonest cause by far. `claude` records trust per
-**exact** directory path in `~/.claude.json`, under
+**exact** directory path in `.claude.json` (inside `$CLAUDE_CONFIG_DIR` when set, else `~`), under
 `projects.<abspath>.hasTrustDialogAccepted`, and a subdirectory does **not** inherit
 its parent's trust. A peer started anywhere untrusted stops on the trust prompt
 before it registers a messaging socket. `herdr agent get <name>` reports
@@ -61,7 +61,7 @@ thin or bare.
 **Your harness may scope messages more narrowly.** Everything above assumes
 `SendMessage` is backed by the generic cross-session protocol — a
 `CLAUDE_CODE_MESSAGING_SOCKET` in your own environment, and sessions discoverable
-through `~/.claude/sessions/*.json`. Some harnesses instead implement
+through `${CLAUDE_CONFIG_DIR:-~/.claude}/sessions/*.json`. Some harnesses instead implement
 `SendMessage` against their own orchestration layer, where the only reachable names
 are agents that harness itself spawned. The signs are specific:
 
@@ -124,7 +124,7 @@ write Markdown to a file, and read the file.
 - `EBUSY` — the peer is alive and the pipe is busy for a moment. Retry the same
   address.
 - A socket file that exists but never answers — the peer crashed without cleaning
-  up. A leftover `~/.claude/sessions/<pid>.json` means a crash; a normal exit
+  up. A leftover `${CLAUDE_CONFIG_DIR:-~/.claude}/sessions/<pid>.json` means a crash; a normal exit
   unlinks both files.
 
 ## herdr traps

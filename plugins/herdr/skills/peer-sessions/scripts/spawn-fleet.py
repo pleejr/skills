@@ -11,7 +11,7 @@ Readiness is the live messaging socket, not herdr's own agent state. herdr
 knowing a pane hosts a claude agent does not mean that claude registered a
 peer-messaging socket, and the socket is the thing SendMessage needs. The two
 worlds are joined through `agent_session.value`, which herdr reports as the
-claude session id: session id -> ~/.claude/sessions/*.json -> pid and socket.
+claude session id: session id -> ${CLAUDE_CONFIG_DIR:-~/.claude}/sessions/*.json -> pid and socket.
 
 `interactive_ready` is deliberately not the gate. It is a real AgentInfo field
 in the herdr schema, but herdr omits it for an agent it did not start, so a
@@ -51,7 +51,39 @@ OTHER_DIRECTION = {"right": "down", "down": "right"}
 # install does not live under ~/.claude/skills at all.
 SKILL_SCRIPTS = os.path.dirname(os.path.realpath(__file__))
 
-CLAUDE_CONFIG = os.path.expanduser("~/.claude.json")
+# Claude Code keeps .claude.json inside CLAUDE_CONFIG_DIR when a launcher sets one, and in the
+# home directory otherwise.
+CLAUDE_CONFIG = (
+    os.path.join(os.path.expanduser(os.environ["CLAUDE_CONFIG_DIR"]), ".claude.json")
+    if os.environ.get("CLAUDE_CONFIG_DIR")
+    else os.path.expanduser("~/.claude.json")
+)
+
+# A new pane's shell starts from the herdr server's environment, not this session's, so a
+# `claude` wrapper that demands a boundary (CLAUDE_CONFIG_DIR) refuses to start there, and a
+# value the server inherited from the other boundary leaks in. Pin this session's values into
+# every pane it creates. CLAUDE_CONFIG_DIR and GIT_SSH_COMMAND pass only when set: Claude Code
+# may read an empty config dir as a path, git runs an empty ssh command, and forcing a default
+# GIT_SSH_COMMAND would override a user's core.sshCommand. The rest always pass: the caller's
+# value, else empty, which their consumers treat as unset.
+# Limit: --env cannot unset a variable, so a CLAUDE_CONFIG_DIR or GIT_SSH_COMMAND that the herdr
+# server inherited still reaches the pane when this caller has none. These values land on herdr's
+# argv, where `ps` shows them: they are paths, so keep credentials out of GIT_SSH_COMMAND.
+BOUNDARY_VARS = ("GH_CONFIG_DIR", "WIKI_PATH", "MC_REPOS_DIR")
+OPTIONAL_VARS = ("CLAUDE_CONFIG_DIR", "GIT_SSH_COMMAND")
+
+
+def boundary_env():
+    args = []
+    for var in OPTIONAL_VARS:
+        if os.environ.get(var):
+            value = os.environ[var]
+            if var == "CLAUDE_CONFIG_DIR":
+                value = os.path.abspath(os.path.expanduser(value))
+            args += ["--env", f"{var}={value}"]
+    for var in BOUNDARY_VARS:
+        args += ["--env", f"{var}={os.environ.get(var, '')}"]
+    return args
 
 # What a blocked pane is blocked on. The detection buffer holds the prompt text,
 # so name the prompt instead of reporting a bare "blocked".
@@ -239,6 +271,7 @@ def split_pane(anchor, direction, cwd, focus):
         "--pane", anchor,
         "--direction", direction,
         "--cwd", cwd,
+        *boundary_env(),
         focus_flag(focus),
     )
     return result["pane"]["pane_id"]
@@ -373,6 +406,7 @@ def build_groups(specs, argv_for, placement, prefix, per_group, direction,
                 "workspace", "create",
                 "--cwd", first_dir,
                 "--label", label,
+                *boundary_env(),
                 focus_flag(group_focus),
             )
             workspaces.append(result["workspace"]["workspace_id"])
@@ -382,6 +416,7 @@ def build_groups(specs, argv_for, placement, prefix, per_group, direction,
                 "--workspace", workspace,
                 "--cwd", first_dir,
                 "--label", label,
+                *boundary_env(),
                 focus_flag(group_focus),
             )
         tabs.append(result["tab"]["tab_id"])

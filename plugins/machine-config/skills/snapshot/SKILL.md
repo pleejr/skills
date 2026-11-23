@@ -98,11 +98,11 @@ scripts/install.sh --remove         # unwire (legacy delivery)
 
 Rebuilding from a snapshot is the `restore` skill.
 
-The repo is located from `$MACHINE_CONFIG_REPO`, else `~/.claude/machine-config-repo` (a
+The repo is located from `$MACHINE_CONFIG_REPO`, else `machine-config-repo` in `${CLAUDE_CONFIG_DIR:-~/.claude}` (a
 one-line pointer `init.sh` writes). Never guess it — a wrong guess snapshots into, or
 restores from, the wrong boundary's repo.
 
-`backup.sh` reads the clone list from `$MC_REPOS_DIR` (default `~/Documents/repos`) and records
+`backup.sh` reads the clone list from `$MC_REPOS_DIR` (else `REPOS_DIR` in `skill-config.env`, else `~/Documents/repos`) and records
 that directory in `repos.txt`'s header, so `restore.sh` prints clone commands for the layout the
 old machine actually had.
 
