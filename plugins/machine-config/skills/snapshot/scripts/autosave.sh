@@ -14,14 +14,14 @@
 # silent — it is surfaced at the next session start by session-check.sh, which reports that
 # nothing is being recorded. Widen MC_SECRET_RE rather than working around a refusal.
 #
-# Bounded and locked because it runs from a lifecycle hook: a hung push must not hold up
-# session exit, and two sessions ending together must not race the git index.
+# Bounded and locked because it runs unattended: the watchdog stops a hung push from leaving
+# the detached run alive, and two sessions ending together must not race the git index.
 #
 # The whole run is detached from the hook. Claude Code cancels a SessionEnd hook when the session
 # is torn down (window or pane closed, a second Ctrl-C) or its budget runs out ("Hook cancelled").
 # Detaching only the push was not enough: the drift check alone takes ~0.8s and a run with a
 # change to commit ~2s, so the hook was cancelled before it committed. The hook now hands the run
-# to a child in its own session, with all three standard streams closed so no pipe holds the hook
+# to a child in its own session, with all three standard streams sent to /dev/null so no pipe holds the hook
 # open, and returns at once; the child outlives the cancellation.
 #
 # Usage: autosave.sh [--run | --no-push | --push-now]

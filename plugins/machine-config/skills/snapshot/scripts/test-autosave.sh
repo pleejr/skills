@@ -19,6 +19,9 @@ printf '#!/bin/sh\nsleep 3\n' > "$T/remote.git/hooks/pre-receive"; chmod +x "$T/
 git init -q -b main "$T/repo"
 git -C "$T/repo" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
 git -C "$T/repo" remote add origin "$T/remote.git"
+# A slow commit stands in for the real config size: without it the fixture's foreground run
+# finishes in ~0.1s, inside the 0.3s kill, and a reverted foreground autosave would pass.
+printf '#!/bin/sh\nsleep 1\n' > "$T/repo/.git/hooks/pre-commit"; chmod +x "$T/repo/.git/hooks/pre-commit"
 git -C "$T/repo" push -q -u origin main 2>/dev/null
 
 perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' bash "$subject" & pid=$!
