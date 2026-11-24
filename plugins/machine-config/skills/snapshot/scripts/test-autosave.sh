@@ -12,7 +12,7 @@ here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 subject="${1:-$here/autosave.sh}"
 
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
-export CLAUDE_CONFIG_DIR="$T/cfg" MACHINE_CONFIG_REPO="$T/repo" MACHINE_CONFIG_HOST=box
+export CLAUDE_CONFIG_DIR="$T/cfg" MACHINE_CONFIG_REPO="$T/repo" MACHINE_CONFIG_HOST=box MC_REPOS_DIR="$T/none"
 mkdir -p "$T/cfg"; echo '{"a":1}' > "$T/cfg/settings.json"
 git init -q --bare "$T/remote.git"
 printf '#!/bin/sh\nsleep 3\n' > "$T/remote.git/hooks/pre-receive"; chmod +x "$T/remote.git/hooks/pre-receive"
@@ -39,9 +39,11 @@ if [ "$(git -C "$T/repo" rev-parse HEAD)" != "$(git -C "$T/remote.git" rev-parse
 fi
 
 # The hook itself must return well inside the SessionEnd budget, whatever is left to do.
+# Capture its stdout: command substitution waits for EOF, so a detached child that kept the
+# hook's pipe open fails here, as it would hold Claude Code's hook open.
 echo '{"a":3}' > "$T/cfg/settings.json"
 start="$(perl -MTime::HiRes=time -e 'printf "%.3f", time')"
-bash "$subject"
+_="$(bash "$subject" 2>&1)"
 end="$(perl -MTime::HiRes=time -e 'printf "%.3f", time')"
 if perl -e 'exit !($ARGV[1] - $ARGV[0] > 0.5)' "$start" "$end"; then
   echo "FAIL: hook took longer than 0.5s to return"; exit 1

@@ -17,11 +17,12 @@
 # Bounded and locked because it runs from a lifecycle hook: a hung push must not hold up
 # session exit, and two sessions ending together must not race the git index.
 #
-# The whole run is detached from the hook. Claude Code gives a SessionEnd hook a short budget and
-# cancels it when the session is torn down ("Hook cancelled"), whatever the hooks.json timeout
-# says. Detaching only the push was not enough: the drift check alone takes ~0.8s and a run with
-# a change to commit ~2s, so the hook was cancelled before it committed. The hook now hands the
-# run to a child in its own session and returns at once; the child outlives the cancellation.
+# The whole run is detached from the hook. Claude Code cancels a SessionEnd hook when the session
+# is torn down (window or pane closed, a second Ctrl-C) or its budget runs out ("Hook cancelled").
+# Detaching only the push was not enough: the drift check alone takes ~0.8s and a run with a
+# change to commit ~2s, so the hook was cancelled before it committed. The hook now hands the run
+# to a child in its own session, with all three standard streams closed so no pipe holds the hook
+# open, and returns at once; the child outlives the cancellation.
 #
 # Usage: autosave.sh [--run | --no-push | --push-now]
 #   (none)      hook mode: detach `--run` and return immediately
@@ -96,6 +97,10 @@ if ! mkdir "$lock" 2>/dev/null; then
   rmdir "$lock" 2>/dev/null; mkdir "$lock" 2>/dev/null || exit 0
 fi
 trap 'rmdir "$lock" 2>/dev/null || true' EXIT
+# Every path releases the lock before pushing, so a slow push never blocks the next session's
+# commit. The push's pull-request fallback does merge into the working tree (lib.sh mc_publish),
+# so a commit racing it can fail; that run exits 0 and the next SessionEnd picks the change up.
+release_lock() { rmdir "$lock" 2>/dev/null; trap - EXIT; }
 
 # Nothing changed? Do nothing — no empty commits, no pointless pushes.
 #
@@ -111,6 +116,7 @@ snapshot_committed() {
 }
 if "$here/backup.sh" --check >/dev/null 2>&1 && snapshot_committed; then
   log "current"
+  release_lock
   push_maybe           # an earlier run may have committed and lost its push
   exit 0
 fi
@@ -126,7 +132,7 @@ fi
 # Only ever stage this machine's own snapshot. Someone else's half-edited shared/ change in
 # the same working tree is not ours to commit — `git add -A` here would sweep it up.
 git -C "$repo" add "machines/$host" >/dev/null 2>&1
-git -C "$repo" diff --cached --quiet 2>/dev/null && { log "nothing staged"; push_maybe; exit 0; }
+git -C "$repo" diff --cached --quiet 2>/dev/null && { log "nothing staged"; release_lock; push_maybe; exit 0; }
 
 files="$(git -C "$repo" diff --cached --name-only | sed "s|^machines/$host/||" | tr '\n' ' ')"
 git -C "$repo" -c user.useConfigOnly=false commit -q \
@@ -135,8 +141,6 @@ git -C "$repo" -c user.useConfigOnly=false commit -q \
   >/dev/null 2>&1 || { log "commit failed"; exit 0; }
 log "committed: $files"
 
-# Release the lock first: the push does not touch the index, and must not hold it.
-rmdir "$lock" 2>/dev/null
-trap - EXIT
+release_lock
 push_maybe
 exit 0
