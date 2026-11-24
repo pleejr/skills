@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# test-autosave.sh — autosave's push must survive the SessionEnd hook being cancelled.
-# Claude Code aborts a SessionEnd hook when the session is torn down; before the push was
-# detached, the commit landed and the push died with the hook, so snapshots never left the
-# machine. This runs autosave against a slow local remote, kills its whole process group
-# 1.5s in, and requires the commit to reach the remote anyway.
+# test-autosave.sh — autosave's snapshot, commit, and push must survive the SessionEnd hook
+# being cancelled. Claude Code gives a SessionEnd hook a short budget and cancels it when the
+# session is torn down ("Hook cancelled"). Detaching only the push was not enough: the drift
+# check and commit alone take about 2s, so the hook was cancelled before it committed. This
+# requires the hook to return promptly, then runs autosave against a slow local remote, kills
+# its whole process group 0.3s in, and requires the commit to reach the remote anyway.
 #
 # Usage: test-autosave.sh [path/to/autosave.sh]   (default: the one beside this file)
 set -u
@@ -11,22 +12,29 @@ here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 subject="${1:-$here/autosave.sh}"
 
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
-export CLAUDE_CONFIG_DIR="$T/cfg" MACHINE_CONFIG_REPO="$T/repo" MACHINE_CONFIG_HOST=box
+export CLAUDE_CONFIG_DIR="$T/cfg" MACHINE_CONFIG_REPO="$T/repo" MACHINE_CONFIG_HOST=box MC_REPOS_DIR="$T/none"
 mkdir -p "$T/cfg"; echo '{"a":1}' > "$T/cfg/settings.json"
 git init -q --bare "$T/remote.git"
 printf '#!/bin/sh\nsleep 3\n' > "$T/remote.git/hooks/pre-receive"; chmod +x "$T/remote.git/hooks/pre-receive"
 git init -q -b main "$T/repo"
 git -C "$T/repo" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
 git -C "$T/repo" remote add origin "$T/remote.git"
+# A slow commit stands in for the real config size: without it the fixture's foreground run
+# finishes in ~0.1s, inside the 0.3s kill, and a reverted foreground autosave would pass.
+printf '#!/bin/sh\nsleep 1\n' > "$T/repo/.git/hooks/pre-commit"; chmod +x "$T/repo/.git/hooks/pre-commit"
+# A global or system core.hooksPath would skip both fixture hooks and let a regression pass.
+git -C "$T/repo" config core.hooksPath "$T/repo/.git/hooks"
+git -C "$T/remote.git" config core.hooksPath "$T/remote.git/hooks"
 git -C "$T/repo" push -q -u origin main 2>/dev/null
 
 perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' bash "$subject" & pid=$!
-sleep 1.5
+sleep 0.3
 kill -TERM -- "-$pid" 2>/dev/null; kill -TERM "$pid" 2>/dev/null
 wait "$pid" 2>/dev/null
 
 for _ in $(seq 20); do
-  [ "$(git -C "$T/repo" rev-parse HEAD)" = "$(git -C "$T/remote.git" rev-parse main)" ] && break
+  [ "$(git -C "$T/repo" rev-list --count HEAD)" -ge 2 ] &&
+    [ "$(git -C "$T/repo" rev-parse HEAD)" = "$(git -C "$T/remote.git" rev-parse main)" ] && break
   sleep 0.5
 done
 if [ "$(git -C "$T/repo" rev-list --count HEAD)" -lt 2 ]; then
@@ -35,4 +43,26 @@ fi
 if [ "$(git -C "$T/repo" rev-parse HEAD)" != "$(git -C "$T/remote.git" rev-parse main)" ]; then
   echo "FAIL: commit landed but the push died with the cancelled hook"; exit 1
 fi
-echo "PASS: push survived hook cancellation"
+
+# The hook itself must return well inside the SessionEnd budget, whatever is left to do.
+# Capture its stdout: command substitution waits for EOF, so a detached child that kept the
+# hook's pipe open fails here, as it would hold Claude Code's hook open.
+echo '{"a":3}' > "$T/cfg/settings.json"
+start="$(perl -MTime::HiRes=time -e 'printf "%.3f", time')"
+_="$(bash "$subject" 2>&1)"
+end="$(perl -MTime::HiRes=time -e 'printf "%.3f", time')"
+if perl -e 'exit !($ARGV[1] - $ARGV[0] > 0.5)' "$start" "$end"; then
+  echo "FAIL: hook took longer than 0.5s to return"; exit 1
+fi
+for _ in $(seq 20); do
+  [ "$(git -C "$T/repo" rev-list --count HEAD)" -ge 3 ] &&
+    [ "$(git -C "$T/repo" rev-parse HEAD)" = "$(git -C "$T/remote.git" rev-parse main)" ] && break
+  sleep 0.5
+done
+if [ "$(git -C "$T/repo" rev-list --count HEAD)" -lt 3 ]; then
+  echo "FAIL: autosave made no commit"; exit 1
+fi
+if [ "$(git -C "$T/repo" rev-parse HEAD)" != "$(git -C "$T/remote.git" rev-parse main)" ]; then
+  echo "FAIL: commit landed but the push died with the cancelled hook"; exit 1
+fi
+echo "PASS: snapshot, commit, and push survived hook cancellation; hook returned promptly"
