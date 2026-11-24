@@ -29,6 +29,8 @@ Headers and tables only where they carry real structure.
 
 At most one short framing line before the bullets, only when they cannot carry it (a scope change, a blocked task).
 
+**A skill may add a `**Summary:**` block between the framing line and the bullets** — one line stating the situation, then the labelled field lines `- Problem:` and `- Type:`, once each (`jira-work` uses them). The Summary line comes on top of the one framing line. The field lines do not count against the three-bullet ceiling; each still follows the one-sentence rule. Any other bullet under Summary is a finding and counts; a new field label needs the Stop hook taught first. A skill may also place one table between the Summary block and the bullets (`jira-work`'s plan), each cell one clause.
+
 ## Depth on request
 
 The line or bullets are the top layer of a stack, not a lossy summary. "expand", "expand 2", "more on the second", "expand all", or a quoted bullet gets a full answer — mechanism, code, tradeoffs, what you ruled out — with no ceiling. Expanding one bullet does not raise the three-bullet ceiling for the rest of the turn.
