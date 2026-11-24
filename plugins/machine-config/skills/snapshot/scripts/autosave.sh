@@ -17,21 +17,25 @@
 # Bounded and locked because it runs from a lifecycle hook: a hung push must not hold up
 # session exit, and two sessions ending together must not race the git index.
 #
-# The push is detached from the hook. Claude Code cancels a SessionEnd hook when the session is
-# torn down (window or pane closed, a second Ctrl-C), and a push is the slow, network-bound step:
-# commits landed but the push was killed every time, so the snapshot piled up locally and never
-# reached the remote. The detached push runs in its own session and outlives the cancellation.
+# The whole run is detached from the hook. Claude Code gives a SessionEnd hook a short budget and
+# cancels it when the session is torn down ("Hook cancelled"), whatever the hooks.json timeout
+# says. Detaching only the push was not enough: the drift check alone takes ~0.8s and a run with
+# a change to commit ~2s, so the hook was cancelled before it committed. The hook now hands the
+# run to a child in its own session and returns at once; the child outlives the cancellation.
 #
-# Usage: autosave.sh [--no-push | --push-now]
-#   --push-now  bounded push of any unpushed commits, in the foreground (what the detached
-#               child runs; also a manual catch-up)
+# Usage: autosave.sh [--run | --no-push | --push-now]
+#   (none)      hook mode: detach `--run` and return immediately
+#   --run       snapshot, commit, and bounded push, in the foreground (what the detached child runs)
+#   --no-push   snapshot and commit in the foreground, no push
+#   --push-now  bounded push of any unpushed commits, in the foreground (manual catch-up)
 set -uo pipefail
 here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$here/lib.sh"
 
+mode="${1:-hook}"
 push=1
-[ "${1:-}" = "--no-push" ] && push=0
+[ "$mode" = "--no-push" ] && push=0
 
 repo="$(mc_repo 2>/dev/null)" || exit 0     # not configured on this machine: nothing to do
 [ -d "$repo/.git" ] || exit 0
@@ -63,25 +67,27 @@ push_now() {
   log "pushed"
 }
 
-# Hand the push to a child in its own session (setsid via perl, present on macOS and Linux),
-# so cancelling the hook's process or group does not take the push with it.
-push_detached() {
+# Push at the end of a run, unless --no-push.
+push_maybe() {
   [ "$push" -eq 1 ] || return 0
-  git -C "$repo" remote get-url origin >/dev/null 2>&1 || return 0
-  unpushed || return 0
-  if command -v perl >/dev/null 2>&1; then
-    nohup perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' bash "$here/autosave.sh" --push-now \
-      </dev/null >/dev/null 2>&1 &
-  else
-    nohup bash "$here/autosave.sh" --push-now </dev/null >/dev/null 2>&1 &
-  fi
-  log "push detached"
+  push_now
 }
 
-if [ "${1:-}" = "--push-now" ]; then
-  push_now
-  exit 0
-fi
+# Run this script with ARGS in a child in its own session (setsid via perl, present on macOS
+# and Linux), so cancelling the hook's process or group does not take the child with it.
+detach() {
+  if command -v perl >/dev/null 2>&1; then
+    nohup perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' bash "$here/autosave.sh" "$@" \
+      </dev/null >/dev/null 2>&1 &
+  else
+    nohup bash "$here/autosave.sh" "$@" </dev/null >/dev/null 2>&1 &
+  fi
+}
+
+case "$mode" in
+  hook)       detach --run; log "run detached"; exit 0 ;;
+  --push-now) push_now; exit 0 ;;
+esac
 
 # One writer at a time; break a lock left by a killed session.
 lock="$repo/.git/machine-config-autosave.lock"
@@ -105,7 +111,7 @@ snapshot_committed() {
 }
 if "$here/backup.sh" --check >/dev/null 2>&1 && snapshot_committed; then
   log "current"
-  push_detached        # an earlier run may have committed and lost its push
+  push_maybe           # an earlier run may have committed and lost its push
   exit 0
 fi
 
@@ -120,7 +126,7 @@ fi
 # Only ever stage this machine's own snapshot. Someone else's half-edited shared/ change in
 # the same working tree is not ours to commit — `git add -A` here would sweep it up.
 git -C "$repo" add "machines/$host" >/dev/null 2>&1
-git -C "$repo" diff --cached --quiet 2>/dev/null && { log "nothing staged"; push_detached; exit 0; }
+git -C "$repo" diff --cached --quiet 2>/dev/null && { log "nothing staged"; push_maybe; exit 0; }
 
 files="$(git -C "$repo" diff --cached --name-only | sed "s|^machines/$host/||" | tr '\n' ' ')"
 git -C "$repo" -c user.useConfigOnly=false commit -q \
@@ -129,8 +135,8 @@ git -C "$repo" -c user.useConfigOnly=false commit -q \
   >/dev/null 2>&1 || { log "commit failed"; exit 0; }
 log "committed: $files"
 
-# Release the lock first: the detached push does not touch the index, and must not hold it.
+# Release the lock first: the push does not touch the index, and must not hold it.
 rmdir "$lock" 2>/dev/null
 trap - EXIT
-push_detached
+push_maybe
 exit 0
