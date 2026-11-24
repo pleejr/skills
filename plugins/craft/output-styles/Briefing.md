@@ -29,7 +29,7 @@ Headers and tables only where they carry real structure.
 
 At most one short framing line before the bullets, only when they cannot carry it (a scope change, a blocked task).
 
-**A skill may add a `**Summary:**` block between the framing line and the bullets** — one line stating the situation, then labelled field lines a skill defines (`jira-work` uses `- Problem:` and `- Type:`). The field lines do not count against the three-bullet ceiling; each still follows the one-sentence rule. Only labelled fields qualify; an unlabelled bullet under Summary is a finding and counts.
+**A skill may add a `**Summary:**` block between the framing line and the bullets** — one line stating the situation, then the labelled field lines `- Problem:` and `- Type:`, once each (`jira-work` uses them). The Summary line comes on top of the one framing line. The field lines do not count against the three-bullet ceiling; each still follows the one-sentence rule. Any other bullet under Summary is a finding and counts; a new field label needs the Stop hook taught first.
 
 ## Depth on request
 
