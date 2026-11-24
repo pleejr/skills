@@ -21,8 +21,8 @@
 # is torn down (window or pane closed, a second Ctrl-C) or its budget runs out ("Hook cancelled").
 # Detaching only the push was not enough: the drift check alone takes ~0.8s and a run with a
 # change to commit ~2s, so the hook was cancelled before it committed. The hook now hands the run
-# to a child in its own session, with all three standard streams sent to /dev/null so no pipe holds the hook
-# open, and returns at once; the child outlives the cancellation.
+# to a child in its own session, with all three standard streams sent to /dev/null so no pipe
+# holds the hook open, and returns at once; the child outlives the cancellation.
 #
 # Usage: autosave.sh [--run | --no-push | --push-now]
 #   (none)      hook mode: detach `--run` and return immediately

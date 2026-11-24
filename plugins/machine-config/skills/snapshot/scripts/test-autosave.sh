@@ -22,6 +22,9 @@ git -C "$T/repo" remote add origin "$T/remote.git"
 # A slow commit stands in for the real config size: without it the fixture's foreground run
 # finishes in ~0.1s, inside the 0.3s kill, and a reverted foreground autosave would pass.
 printf '#!/bin/sh\nsleep 1\n' > "$T/repo/.git/hooks/pre-commit"; chmod +x "$T/repo/.git/hooks/pre-commit"
+# A global or system core.hooksPath would skip both fixture hooks and let a regression pass.
+git -C "$T/repo" config core.hooksPath "$T/repo/.git/hooks"
+git -C "$T/remote.git" config core.hooksPath "$T/remote.git/hooks"
 git -C "$T/repo" push -q -u origin main 2>/dev/null
 
 perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' bash "$subject" & pid=$!
