@@ -32,13 +32,21 @@ first, and `heal` exits 0 whatever it finds, so it can never block a session sta
 
 ## What the segments mean
 
-`Opus 5 | repos | ctx 42% | 5h 12% | 7d 71% | ⠙ 2 running | ⏳ idle 3m07s`
+`Opus 5 | repos | ctx 42% | 5h 12% | 7d 71% | sso 48m | ⠙ 2 running | ⏳ idle 3m07s`
 
 - **ctx** — context-window usage. Green below 70%, amber from 70% with `distill soon`, red from
   85% with `distill now`. Truncated, never rounded, so 84.9% cannot escalate a band.
 - **5h / 7d / spend** — subscription usage from `.rate_limits`, same bands. The host sends these
   only on a subscription (or behind a gateway reporting a spend limit) and only after the session's
   first API response.
+- **sso** — opt-in: set `STATUSLINE_AWS_SSO_SESSION` to an `[sso-session]` name in
+  `~/.aws/config` (a launcher's `export` reaches the status line). Time left on the cached AWS
+  SSO access token, read from `~/.aws/sso/cache`, no network call. Amber at 15m or less and
+  `refresh due` once past expiry while the CLI can still refresh (refresh token plus a live client
+  registration); red `sso expired — aws sso login --sso-session <name>` when it cannot. A date
+  it cannot parse draws nothing.
+  It is the access token, not the session: the CLI refreshes it until the session maximum,
+  which the cache does not record.
 - **⠙ N running** — shell work in flight, counted from the process table: children of this
   session's `claude` process started through a shell snapshot. It clears itself when the work ends,
   with no hook to clear a marker.
