@@ -14,7 +14,7 @@
 # does not send simply leaves its segment out, because a status line that breaks
 # is worse than one that is absent.
 #
-# Needs: jq, ps, date (shasum for the opt-in sso segment). Honors NO_COLOR.
+# Needs: jq, ps, date (shasum and aws for the opt-in sso segment). Honors NO_COLOR.
 set -uo pipefail
 
 payload="$(cat)"
@@ -62,55 +62,77 @@ for window in five_hour:5h seven_day:7d spend_limit:spend; do
 done
 
 # AWS SSO — opt-in: set STATUSLINE_AWS_SSO_SESSION to an [sso-session] name from
-# ~/.aws/config. Reads the CLI's token cache (file name = sha1 of that name) and
-# shows how long the cached access token has left, with no network call. That is
-# the access token, not the whole SSO session: the CLI refreshes it with the
-# refresh token on next use until the session's own maximum, which the cache does
-# not record. Dim above 15m, amber at 15m or under, amber "refresh due" once past
-# expiry while the CLI can still refresh, red when it cannot or there is no file.
+# ~/.aws/config. Shows time left on the SSO session itself, not the 1-hour access
+# token the CLI renews on its own:
+#   session clock  login stamp (sso.sh login, or a launcher writing the same file)
+#                  + STATUSLINE_AWS_SSO_HOURS (default 8, the Identity Center default)
+#   live check     sso.sh check, started detached at most every 5 minutes when
+#                  STATUSLINE_AWS_SSO_PROFILE names a profile on that session
+#   renewal        in the final hour, sso.sh login runs detached (at most every
+#                  30 minutes) and opens the browser for you to approve
+# Dim above an hour, amber "renewing" in the last hour, red when the live check
+# says the session is gone or the token cache cannot refresh. No stamp yet: a dim
+# "sso ok". Nothing here waits on the network; the render reads files only.
 sso_frag=""
 if [ -n "${STATUSLINE_AWS_SSO_SESSION:-}" ]; then
+  here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+  sso_sess="$STATUSLINE_AWS_SSO_SESSION"
+  sso_safe="$(printf '%s' "$sso_sess" | tr -c 'A-Za-z0-9._-' '_')"
+  sso_state="${STATUSLINE_STATE_DIR:-${XDG_STATE_HOME:-${HOME:-}/.local/state}/claude-statusline}"
+  sso_hours="${STATUSLINE_AWS_SSO_HOURS:-8}"
+  case "$sso_hours" in ''|*[!0-9]*) sso_hours=8 ;; esac
+  sso_now="$(date +%s)"
+  sso_hint="aws sso login --sso-session ${sso_sess}"
+  sso_bg() { nohup "$here/sso.sh" "$@" </dev/null >/dev/null 2>&1 & }
+
+  # Live check, throttled by rewriting the check file's epoch before starting one.
+  sso_check="$sso_state/sso-check-$sso_safe"
+  read -r sso_ck_at sso_ck <<<"$(cat "$sso_check" 2>/dev/null)"
+  case "${sso_ck_at:-}" in ''|*[!0-9]*) sso_ck_at=0 ;; esac
+  if [ -n "${STATUSLINE_AWS_SSO_PROFILE:-}" ] && [ $(( sso_now - sso_ck_at )) -ge 300 ] \
+     && mkdir -p "$sso_state" 2>/dev/null; then
+    printf '%s %s\n' "$sso_now" "${sso_ck:-}" > "$sso_check" 2>/dev/null \
+      && sso_bg check "$sso_sess" "$STATUSLINE_AWS_SSO_PROFILE"
+  fi
+
+  # Token cache: whether the CLI can still refresh (refresh token plus a live client
+  # registration, its own rule) and whether the access token is still in date.
   sso_dir="${STATUSLINE_AWS_SSO_CACHE:-${HOME:-}/.aws/sso/cache}"
-  sso_key="$( { printf '%s' "$STATUSLINE_AWS_SSO_SESSION" | shasum 2>/dev/null || printf '%s' "$STATUSLINE_AWS_SSO_SESSION" | sha1sum 2>/dev/null; } | cut -c1-40)"
-  sso_file="${sso_dir}/${sso_key}.json"
-  sso_hint="aws sso login --sso-session ${STATUSLINE_AWS_SSO_SESSION}"
-  if [ -z "$sso_key" ]; then
-    :  # no sha1 tool: draw nothing rather than a false alarm
-  elif [ ! -r "$sso_file" ]; then
+  sso_key="$( { printf '%s' "$sso_sess" | shasum 2>/dev/null || printf '%s' "$sso_sess" | sha1sum 2>/dev/null; } | cut -c1-40)"
+  sso_cache=missing
+  if [ -n "$sso_key" ] && [ -r "$sso_dir/$sso_key.json" ]; then
+    sso_cache="$(jq -r '
+      def ts: sub("\\.[0-9]+"; "") | fromdateiso8601;
+      if ((.refreshToken // "") != "") and ((.clientId // "") != "") and ((.clientSecret // "") != "")
+         and (((.registrationExpiresAt // "") | try ts catch 0) > now) then "refreshable"
+      elif ((.expiresAt // "") | try ts catch 0) > now then "valid"
+      else "dead" end' "$sso_dir/$sso_key.json" 2>/dev/null)"
+    [ -n "$sso_cache" ] || sso_cache=unknown
+  fi
+
+  sso_start="$(cat "$sso_state/sso-login-$sso_safe" 2>/dev/null)"
+  case "$sso_start" in ''|*[!0-9]*) sso_start="" ;; esac
+
+  if [ "${sso_ck:-}" = fail ] || [ "$sso_cache" = missing ] || [ "$sso_cache" = dead ]; then
     sso_frag=" | ${RED}sso expired — ${sso_hint}${RESET}"
-  else
-    # One jq pass: "<seconds left> <refreshable y|n>", or nothing when expiresAt
-    # does not parse (an unknown format draws no segment, never a false red).
-    # Refreshable mirrors the CLI: a non-empty refresh token plus a client id,
-    # secret and a registration that has not yet expired.
-    read -r sso_left sso_refresh <<EOF2
-$(jq -r '
-  def ts: sub("\\.[0-9]+"; "") | fromdateiso8601;
-  ((.expiresAt | ts) - now | floor) as $left
-  | (if ((.refreshToken // "") != "") and ((.clientId // "") != "") and ((.clientSecret // "") != "")
-          and (((.registrationExpiresAt // "") | try ts catch 0) > now)
-     then "y" else "n" end) as $r
-  | "\($left) \($r)"' "$sso_file" 2>/dev/null)
-EOF2
-    if [ -n "${sso_left:-}" ] && [ "$sso_left" -eq "$sso_left" ] 2>/dev/null; then
-      if [ "$sso_left" -gt 0 ]; then
-        sso_min=$(( sso_left / 60 ))
-        if [ "$sso_left" -ge 3600 ]; then
-          sso_txt="$(printf 'sso %dh%02dm' $((sso_left / 3600)) $((sso_min % 60)))"
-        else
-          sso_txt="sso ${sso_min}m"
-        fi
-        # Band on the shown minutes, so one label never wears two colours; 15m
-        # is the CLI's own refresh window.
-        if [ "$sso_min" -le 15 ]; then sso_frag=" | ${AMBER}${sso_txt}${RESET}"
-        else                           sso_frag=" | ${DIM}${sso_txt}${RESET}"
-        fi
-      elif [ "$sso_refresh" = "y" ]; then
-        sso_frag=" | ${AMBER}sso refresh due${RESET}"
-      else
-        sso_frag=" | ${RED}sso expired — ${sso_hint}${RESET}"
+  elif [ -n "$sso_start" ]; then
+    sso_left=$(( sso_start + sso_hours * 3600 - sso_now ))
+    if [ "$sso_left" -gt 3600 ]; then
+      sso_frag="$(printf ' | %ssso %dh%02dm%s' "$DIM" $((sso_left / 3600)) $((sso_left % 3600 / 60)) "$RESET")"
+    elif [ "$sso_left" -gt 0 ]; then
+      sso_frag="$(printf ' | %ssso %dm — renewing%s' "$AMBER" $((sso_left / 60)) "$RESET")"
+      sso_relogin="$sso_state/sso-relogin-$sso_safe"
+      sso_last="$(cat "$sso_relogin" 2>/dev/null)"
+      case "$sso_last" in ''|*[!0-9]*) sso_last=0 ;; esac
+      if [ $(( sso_now - sso_last )) -ge 1800 ] && printf '%s\n' "$sso_now" > "$sso_relogin" 2>/dev/null; then
+        sso_bg login "$sso_sess"
       fi
+    else
+      # Past the assumed length but nothing says it ended: the session is longer.
+      sso_frag=" | ${DIM}sso ok${RESET}"
     fi
+  elif [ "$sso_cache" != unknown ]; then
+    sso_frag=" | ${DIM}sso ok${RESET}"
   fi
 fi
 

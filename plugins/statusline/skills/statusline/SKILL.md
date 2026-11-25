@@ -32,21 +32,24 @@ first, and `heal` exits 0 whatever it finds, so it can never block a session sta
 
 ## What the segments mean
 
-`Opus 5 | repos | ctx 42% | 5h 12% | 7d 71% | sso 48m | ⠙ 2 running | ⏳ idle 3m07s`
+`Opus 5 | repos | ctx 42% | 5h 12% | 7d 71% | sso 5h12m | ⠙ 2 running | ⏳ idle 3m07s`
 
 - **ctx** — context-window usage. Green below 70%, amber from 70% with `distill soon`, red from
   85% with `distill now`. Truncated, never rounded, so 84.9% cannot escalate a band.
 - **5h / 7d / spend** — subscription usage from `.rate_limits`, same bands. The host sends these
   only on a subscription (or behind a gateway reporting a spend limit) and only after the session's
   first API response.
-- **sso** — opt-in: set `STATUSLINE_AWS_SSO_SESSION` to an `[sso-session]` name in
-  `~/.aws/config` (a launcher's `export` reaches the status line). Time left on the cached AWS
-  SSO access token, read from `~/.aws/sso/cache`, no network call. Amber at 15m or less and
-  `refresh due` once past expiry while the CLI can still refresh (refresh token plus a live client
-  registration); red `sso expired — aws sso login --sso-session <name>` when it cannot. A date
-  it cannot parse draws nothing.
-  It is the access token, not the session: the CLI refreshes it until the session maximum,
-  which the cache does not record.
+- **sso** — opt-in AWS SSO session clock, off unless `STATUSLINE_AWS_SSO_SESSION` names an
+  `[sso-session]` in `~/.aws/config` (a launcher's `export` reaches the status line).
+  - Counts down `STATUSLINE_AWS_SSO_HOURS` (default 8) from the last login stamp, the file
+    `~/.local/state/claude-statusline/sso-login-<session>`. `scripts/sso.sh login` writes it, and a
+    launcher that logs in should write the same file. A login made elsewhere is not stamped.
+  - With `STATUSLINE_AWS_SSO_PROFILE` set, `sso.sh check` runs `aws sts get-caller-identity`
+    detached at most every 5 minutes; an auth failure turns the segment red, a network fault does not.
+  - In the final hour it turns amber `renewing` and starts `sso.sh login` detached, at most every
+    30 minutes; you approve the browser prompt, and the stamp resets on success.
+  - Red `sso expired — aws sso login --sso-session <name>` also shows when the token cache cannot
+    refresh or is missing. With no stamp yet it shows dim `sso ok`. The render reads files only.
 - **⠙ N running** — shell work in flight, counted from the process table: children of this
   session's `claude` process started through a shell snapshot. It clears itself when the work ends,
   with no hook to clear a marker.
