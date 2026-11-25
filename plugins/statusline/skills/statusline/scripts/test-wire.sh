@@ -44,7 +44,7 @@ case "$1 ${AWS_STUB_STS:-ok}" in
   "sts expired") echo "Error when retrieving token from sso: Token has expired and refresh failed" >&2; exit 255 ;;
   "sts ssl") echo 'SSL validation failed for https://oidc.us-east-1.amazonaws.com/token [SSL: CERTIFICATE_VERIFY_FAILED]' >&2; exit 255 ;;
   "sts net") echo 'Could not connect to the endpoint URL: "https://oidc.us-east-1.amazonaws.com/token"' >&2; exit 255 ;;
-  sso*) exit 0 ;;
+  sso*) [ "${AWS_STUB_LOGIN:-ok}" = ok ] && exit 0; exit 1 ;;
 esac
 STUB
 chmod +x "$bin/aws"
@@ -65,12 +65,18 @@ out="$(render STATUSLINE_AWS_SSO_HOURS=012)"; has "sso 7h01m" "$out" && ok "sess
 out="$(render STATUSLINE_AWS_SSO_HOURS=08 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the countdown path" || bad "no stderr on the countdown path" "$out"
 
 reset_sso; checked ok; stamp $(( 7 * 3600 + 1830 ))
-out="$(render 2>"$tmp/err")"; has "${AMB}sso 29m — renewing" "$out" && ok "amber in the final hour" || bad "amber in the final hour" "$out"
-[ -s "$tmp/err" ] && bad "no stderr on the renewal path" "$(cat "$tmp/err")" || ok "no stderr on the renewal path"
-waitfor "sso login --sso-session tsess" "$calls" && ok "final hour starts a background login" || bad "final hour starts a background login"
+out="$(render 2>"$tmp/err")"; has "${AMB}sso 29m — login soon" "$out" && ok "amber in the final hour" || bad "amber in the final hour" "$out"
+[ -s "$tmp/err" ] && bad "no stderr on the final-hour path" "$(cat "$tmp/err")" || ok "no stderr on the final-hour path"
+sleep 1; grep -q 'sso login' "$calls" 2>/dev/null && bad "the final hour starts no login" "$(cat "$calls")" || ok "the final hour starts no login"
+
+reset_sso; stamp $(( 9 * 3600 )); printf '%s fail\n' "$(now)" > "$st/sso-check-tsess"; mkdir -p "$st/sso-slot-check-tsess-$(( $(now) / 300 ))"
+out="$(render 2>"$tmp/err")"; has "${RD}sso expired — renewing (aws sso login --sso-session tsess)" "$out" && ok "expiry turns red" || bad "expiry turns red" "$out"
+[ -s "$tmp/err" ] && bad "no stderr on the expired path" "$(cat "$tmp/err")" || ok "no stderr on the expired path"
+waitfor "sso login --sso-session tsess" "$calls" && ok "expiry starts a background login" || bad "expiry starts a background login"
 for _ in $(seq 1 25); do [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && break; sleep 0.2; done
 [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && ok "a successful login restamps the clock" || bad "a successful login restamps the clock"
-stamp $(( 7 * 3600 + 1830 )); render >/dev/null; render >/dev/null; sleep 1
+grep -q ' ok$' "$st/sso-check-tsess" && ok "a successful login clears the red" || bad "a successful login clears the red" "$(cat "$st/sso-check-tsess")"
+printf '%s fail\n' "$(now)" > "$st/sso-check-tsess"; render >/dev/null; render >/dev/null; sleep 1
 [ "$(grep -c 'sso login' "$calls")" = 1 ] && ok "one background login per 30-minute window" || bad "one background login per 30-minute window" "$(cat "$calls")"
 
 reset_sso; checked ok
@@ -80,12 +86,12 @@ out="$(render)"; has "${DM}sso ok" "$out" && ok "past the assumed length, still 
 [ -f "$calls" ] && bad "past the assumed length starts no login" "$(cat "$calls")" || ok "past the assumed length starts no login"
 
 reset_sso; stamp 3630
-render AWS_STUB_STS=expired >/dev/null; render AWS_STUB_STS=expired >/dev/null
+render AWS_STUB_STS=expired AWS_STUB_LOGIN=fail >/dev/null; render AWS_STUB_STS=expired AWS_STUB_LOGIN=fail >/dev/null
 waitfor "sts get-caller-identity --profile tprof" "$calls" && ok "a new window starts a live check" || bad "a new window starts a live check"
 waitfor fail "$st/sso-check-tsess"; sleep 0.5
 [ "$(grep -c 'sts' "$calls")" = 1 ] && ok "one live check per 5-minute window" || bad "one live check per 5-minute window" "$(cat "$calls")"
-out="$(render)"; has "${RD}sso expired — aws sso login --sso-session tsess" "$out" && ok "a failed live check turns red" || bad "a failed live check turns red" "$out"
-out="$(render 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the red path" || bad "no stderr on the red path" "$out"
+out="$(render AWS_STUB_LOGIN=fail)"; has "${RD}sso expired" "$out" && ok "a failed live check turns red" || bad "a failed live check turns red" "$out"
+out="$(render AWS_STUB_LOGIN=fail 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the red path" || bad "no stderr on the red path" "$out"
 
 reset_sso; stamp 3630
 render AWS_STUB_STS=net >/dev/null; waitfor error "$st/sso-check-tsess"

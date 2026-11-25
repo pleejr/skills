@@ -67,7 +67,9 @@ done
 #   session clock  last login stamp + STATUSLINE_AWS_SSO_HOURS (default 8)
 #   live check     sso.sh check, started detached once per 5-minute window; the
 #                  only source of red, since the token cache cannot tell
-#   renewal        in the final hour, sso.sh login runs detached once per
+#   final hour     amber "login soon"; no login yet, because a login while the
+#                  session lives reuses it and does not extend it
+#   renewal        once the live check fails, sso.sh login runs detached once per
 #                  30-minute window and opens the browser for you to approve
 # The render never waits on the network: it reads two small files and, at most
 # once per window, claims a slot with mkdir and starts a helper.
@@ -91,14 +93,14 @@ if [ -n "${STATUSLINE_AWS_SSO_SESSION:-}" ] && [ -n "${STATUSLINE_AWS_SSO_PROFIL
   case "$sso_start" in ''|*[!0-9]*) sso_start="" ;; esac
 
   if [ "$sso_ck" = fail ]; then
-    sso_frag=" | ${RED}sso expired — aws sso login --sso-session ${sso_sess}${RESET}"
+    sso_frag=" | ${RED}sso expired — renewing (aws sso login --sso-session ${sso_sess})${RESET}"
+    sso_slot login 1800 && sso_bg login "$sso_sess"
   elif [ -n "$sso_start" ] && [ $(( sso_start + sso_hours * 3600 - sso_now )) -gt 0 ]; then
     sso_left=$(( sso_start + sso_hours * 3600 - sso_now ))
     if [ "$sso_left" -gt 3600 ]; then
       sso_frag="$(printf ' | %ssso %dh%02dm%s' "$DIM" $((sso_left / 3600)) $((sso_left % 3600 / 60)) "$RESET")"
     else
-      sso_frag="$(printf ' | %ssso %dm — renewing%s' "$AMBER" $((sso_left / 60)) "$RESET")"
-      sso_slot login 1800 && sso_bg login "$sso_sess"
+      sso_frag="$(printf ' | %ssso %dm — login soon%s' "$AMBER" $((sso_left / 60)) "$RESET")"
     fi
   elif [ "$sso_ck" = ok ]; then
     # No stamp yet, or past the assumed length while the check still passes.
