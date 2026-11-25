@@ -2,7 +2,7 @@
 #
 # statusline.sh — the status line this plugin renders.
 #
-#   <model> | <cwd basename> | ctx <pct>% [| 5h <pct>% | 7d <pct>%] [| ⠙ N running] [| ⏳ idle <duration>]
+#   <model> | <cwd basename> | ctx <pct>% [| 5h <pct>% | 7d <pct>%] [| sso <left>] [| ⠙ N running] [| ⏳ idle <duration>]
 #
 # Claude Code runs it with the status-line JSON on stdin (model.display_name,
 # workspace.current_dir, session_id, context_window, rate_limits) and prints
@@ -14,7 +14,7 @@
 # does not send simply leaves its segment out, because a status line that breaks
 # is worse than one that is absent.
 #
-# Needs: jq, ps, date. Honors NO_COLOR.
+# Needs: jq, ps, date (aws for the opt-in sso segment). Honors NO_COLOR.
 set -uo pipefail
 
 payload="$(cat)"
@@ -60,6 +60,52 @@ for window in five_hour:5h seven_day:7d spend_limit:spend; do
   else                         usage_frag="${usage_frag} | ${DIM}${label} ${pct}%${RESET}"
   fi
 done
+
+# AWS SSO — opt-in: set STATUSLINE_AWS_SSO_SESSION to an [sso-session] name from
+# ~/.aws/config and STATUSLINE_AWS_SSO_PROFILE to a profile on it. Shows time left
+# on the SSO session itself, not the 1-hour access token the CLI renews on its own:
+#   session clock  last login stamp + STATUSLINE_AWS_SSO_HOURS (default 8)
+#   live check     sso.sh check, started detached once per 5-minute window; the
+#                  only source of red, since the token cache cannot tell
+#   final hour     amber "login soon"; no login yet, because a login while the
+#                  session lives reuses it and does not extend it
+#   renewal        the check that first sees the session fail runs sso.sh login
+#                  once, which opens the browser for you to approve
+# The render never waits on the network: it reads two small files and, at most
+# once per 5-minute window, claims a slot with mkdir and starts the check.
+sso_frag=""
+if [ -n "${STATUSLINE_AWS_SSO_SESSION:-}" ] && [ -n "${STATUSLINE_AWS_SSO_PROFILE:-}" ]; then
+  here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+  sso_sess="$STATUSLINE_AWS_SSO_SESSION"
+  sso_safe="$(printf '%s' "$sso_sess" | tr -c 'A-Za-z0-9._-' '_')"
+  sso_state="${STATUSLINE_STATE_DIR:-${XDG_STATE_HOME:-${HOME:-}/.local/state}/claude-statusline}"
+  sso_hours="${STATUSLINE_AWS_SSO_HOURS:-8}"
+  case "$sso_hours" in ''|*[!0-9]*) sso_hours=8 ;; esac
+  sso_hours=$((10#$sso_hours)); [ "$sso_hours" -gt 0 ] || sso_hours=8
+  sso_now="$(date +%s)"
+  sso_bg() { nohup "$here/sso.sh" "$@" </dev/null >/dev/null 2>&1 & }
+  sso_slot() { mkdir -p "$sso_state" 2>/dev/null && mkdir "$sso_state/sso-slot-$1-$sso_safe-$(( sso_now / $2 ))" 2>/dev/null; }
+
+  sso_slot check 300 && sso_bg check "$sso_sess" "$STATUSLINE_AWS_SSO_PROFILE"
+
+  read -r _ sso_ck 2>/dev/null < "$sso_state/sso-check-$sso_safe" || sso_ck=""
+  sso_start="$(cat "$sso_state/sso-login-$sso_safe" 2>/dev/null)"
+  case "$sso_start" in ''|*[!0-9]*) sso_start="" ;; *) sso_start=$((10#$sso_start)) ;; esac
+
+  if [ "$sso_ck" = fail ]; then
+    sso_frag=" | ${RED}sso expired — aws sso login --sso-session ${sso_sess}${RESET}"
+  elif [ -n "$sso_start" ] && [ $(( sso_start + sso_hours * 3600 - sso_now )) -gt 0 ]; then
+    sso_left=$(( sso_start + sso_hours * 3600 - sso_now ))
+    if [ "$sso_left" -gt 3600 ]; then
+      sso_frag="$(printf ' | %ssso %dh%02dm%s' "$DIM" $((sso_left / 3600)) $((sso_left % 3600 / 60)) "$RESET")"
+    else
+      sso_frag="$(printf ' | %ssso %dm — login soon%s' "$AMBER" $((sso_left / 60)) "$RESET")"
+    fi
+  elif [ "$sso_ck" = ok ]; then
+    # No stamp yet, or past the assumed length while the check still passes.
+    sso_frag=" | ${DIM}sso ok${RESET}"
+  fi
+fi
 
 # Idle timer — appears only while the session is waiting for your input. It reads
 # an "idle since" epoch stamped by this plugin's Stop hook and cleared by its
@@ -114,4 +160,4 @@ if [ -n "$claude_pid" ]; then
   fi
 fi
 
-printf '%s | %s%s%s%s%s' "$model" "$base" "$ctx_frag" "$usage_frag" "$work_frag" "$idle"
+printf '%s | %s%s%s%s%s%s' "$model" "$base" "$ctx_frag" "$usage_frag" "$sso_frag" "$work_frag" "$idle"
