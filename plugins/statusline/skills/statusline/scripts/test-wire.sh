@@ -38,9 +38,11 @@ st="$tmp/sso-state"; bin="$tmp/bin"; calls="$tmp/aws-calls"; mkdir -p "$st" "$bi
 cat > "$bin/aws" <<'STUB'
 #!/usr/bin/env bash
 echo "$*" >> "$AWS_CALLS"
+[ "$1" = sts ] && echo "home=$HOME rolecache=$([ -e "$HOME/.aws/cli/cache" ] && echo yes || echo no)" >> "$AWS_CALLS.env"
 case "$1 ${AWS_STUB_STS:-ok}" in
   "sts ok") exit 0 ;;
   "sts expired") echo "Error when retrieving token from sso: Token has expired and refresh failed" >&2; exit 255 ;;
+  "sts ssl") echo 'SSL validation failed for https://oidc.us-east-1.amazonaws.com/token [SSL: CERTIFICATE_VERIFY_FAILED]' >&2; exit 255 ;;
   "sts net") echo 'Could not connect to the endpoint URL: "https://oidc.us-east-1.amazonaws.com/token"' >&2; exit 255 ;;
   sso*) exit 0 ;;
 esac
@@ -53,7 +55,7 @@ render() {
     STATUSLINE_AWS_SSO_SESSION=tsess STATUSLINE_AWS_SSO_PROFILE=tprof "$@" "$here/statusline.sh"
 }
 waitfor() { for _ in $(seq 1 25); do grep -q "$1" "$2" 2>/dev/null && return 0; sleep 0.2; done; return 1; }
-reset_sso() { rm -rf "$st"/* "$calls"; }
+reset_sso() { rm -rf "$st"/* "$calls" "$calls.env"; }
 stamp() { echo $(( $(now) - $1 )) > "$st/sso-login-tsess"; }
 checked() { printf '%s %s\n' "$(now)" "$1" > "$st/sso-check-tsess"; mkdir -p "$st/sso-slot-check-tsess-$(( $(now) / 300 ))"; }
 
@@ -63,8 +65,8 @@ out="$(render STATUSLINE_AWS_SSO_HOURS=012)"; has "sso 7h01m" "$out" && ok "sess
 out="$(render STATUSLINE_AWS_SSO_HOURS=08 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the countdown path" || bad "no stderr on the countdown path" "$out"
 
 reset_sso; checked ok; stamp $(( 7 * 3600 + 1830 ))
-out="$(render 2>&1)"; has "${AMB}sso 29m — renewing" "$out" && ok "amber in the final hour" || bad "amber in the final hour" "$out"
-has 'line ' "$out" && bad "no stderr on the renewal path" "$out" || ok "no stderr on the renewal path"
+out="$(render 2>"$tmp/err")"; has "${AMB}sso 29m — renewing" "$out" && ok "amber in the final hour" || bad "amber in the final hour" "$out"
+[ -s "$tmp/err" ] && bad "no stderr on the renewal path" "$(cat "$tmp/err")" || ok "no stderr on the renewal path"
 waitfor "sso login --sso-session tsess" "$calls" && ok "final hour starts a background login" || bad "final hour starts a background login"
 for _ in $(seq 1 25); do [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && break; sleep 0.2; done
 [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && ok "a successful login restamps the clock" || bad "a successful login restamps the clock"
@@ -88,6 +90,11 @@ out="$(render 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the red path"
 reset_sso; stamp 3630
 render AWS_STUB_STS=net >/dev/null; waitfor error "$st/sso-check-tsess"
 out="$(render)"; has "${DM}sso 6h59m" "$out" && ok "offline (token endpoint unreachable) is not an expiry" || bad "offline is not an expiry" "$out"
+
+grep -q "rolecache=no" "$calls.env" && ! grep -q "home=$HOME " "$calls.env" && ok "the check runs without cached role credentials" || bad "the check runs without cached role credentials" "$(cat "$calls.env" 2>/dev/null)"
+reset_sso; stamp 3630
+render AWS_STUB_STS=ssl >/dev/null; waitfor error "$st/sso-check-tsess"
+grep -q error "$st/sso-check-tsess" && ok "a TLS fault on the token endpoint is not an expiry" || bad "TLS fault is not an expiry" "$(cat "$st/sso-check-tsess")"
 
 reset_sso; stamp $(( 9 * 3600 )); printf '%s fail\n' "$(( $(now) - 400 ))" > "$st/sso-check-tsess"
 render >/dev/null; waitfor ok "$st/sso-check-tsess"; sleep 0.3

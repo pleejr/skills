@@ -45,12 +45,13 @@ first, and `heal` exits 0 whatever it finds, so it can never block a session sta
   - Counts down `STATUSLINE_AWS_SSO_HOURS` (default 8) from the login stamp
     `~/.local/state/claude-statusline/sso-login-<session>`. `scripts/sso.sh login` writes it; so
     does the first passing check after a failed one, which is how a login made elsewhere is seen.
-  - `sso.sh check` runs `aws sts get-caller-identity` detached, once per 5-minute window. An auth
-    failure turns the segment red; a network fault does not. It is the only source of red.
+  - `sso.sh check` runs `aws sts get-caller-identity` detached, once per 5-minute window, from a
+    scratch HOME so cached role credentials cannot mask an ended session. An auth failure turns
+    the segment red; a network fault does not. It is the only source of red.
   - In the final hour it turns amber `renewing` and starts `sso.sh login` detached, once per
     30-minute window; you approve the browser prompt, and the stamp resets on success.
-  - Dim `sso ok` when the check passes with no stamp, or past the assumed length. Nothing before
-    the first check result. The render reads two files and claims each window with `mkdir`.
+  - Dim `sso ok` when the check passes with no stamp, or past the assumed length. With neither a
+    stamp nor a check result yet, nothing. The render reads two files and claims each window with `mkdir`.
 - **⠙ N running** — shell work in flight, counted from the process table: children of this
   session's `claude` process started through a shell snapshot. It clears itself when the work ends,
   with no hook to clear a marker.

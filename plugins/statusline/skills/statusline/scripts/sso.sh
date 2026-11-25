@@ -19,33 +19,48 @@ PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
 state="${STATUSLINE_STATE_DIR:-${XDG_STATE_HOME:-${HOME:-}/.local/state}/claude-statusline}"
 mkdir -p "$state" 2>/dev/null || exit 0
 safe() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '_'; }
+# Write via a temp file and rename, so a render never reads a half-written file.
+put() { printf '%s\n' "$2" > "$1.$$" 2>/dev/null && mv -f "$1.$$" "$1" 2>/dev/null; }
 
 case "${1:-}" in
   check)
     sess="${2:-}"; profile="${3:-}"
     [ -n "$sess" ] && [ -n "$profile" ] || exit 0
-    file="$state/sso-check-$(safe "$sess")"
+    file="$state/sso-check-$(safe "$sess")"; stamp="$state/sso-login-$(safe "$sess")"
+    started="$(date +%s)"
     read -r _ prev 2>/dev/null < "$file" || prev=""
-    err="$(aws sts get-caller-identity --profile "$profile" --output text 2>&1 >/dev/null)"
-    if [ $? -eq 0 ]; then res=ok
+    # Check the SSO session, not cached role credentials: a scratch HOME with an
+    # empty ~/.aws/cli/cache forces GetRoleCredentials through the SSO token, while
+    # the symlinked ~/.aws/sso keeps the real token cache (refreshes land there).
+    real_home="${HOME:-}"; scratch="$(mktemp -d "${TMPDIR:-/tmp}/sso-check.XXXXXX")" || exit 0
+    mkdir -p "$scratch/.aws" && ln -s "$real_home/.aws/sso" "$scratch/.aws/sso"
+    err="$(HOME="$scratch" AWS_CONFIG_FILE="${AWS_CONFIG_FILE:-$real_home/.aws/config}" \
+      aws sts get-caller-identity --profile "$profile" --output text \
+      --cli-connect-timeout 10 --cli-read-timeout 20 2>&1 >/dev/null)"
+    rc=$?
+    rm -rf "$scratch"
+    if [ $rc -eq 0 ]; then res=ok
     else
-      # A network fault is not an expiry; test it first, since the refresh
-      # endpoint's URL (".../token") would match the auth patterns below.
+      # Transport faults first: botocore names the ".../token" endpoint in them,
+      # which the auth patterns would otherwise match.
       case "$err" in
-        *"Could not connect"*|*"Connect timeout"*|*"Read timeout"*|*"Name or service"*|*"nodename nor servname"*) res=error ;;
+        *"Could not connect"*|*"Connect timeout"*|*"Read timeout"*|*"SSL validation failed"*|*"Connection was closed"*) res=error ;;
         *[Tt]oken*|*[Ll]ogin*|*SSO*|*[Uu]nauthorized*|*[Ee]xpired*) res=fail ;;
         *) res=error ;;
       esac
     fi
-    printf '%s %s\n' "$(date +%s)" "$res" > "$file" 2>/dev/null
+    # A login that finished while this check ran outranks its result.
+    since="$(cat "$stamp" 2>/dev/null)"; case "$since" in ''|*[!0-9]*) since=0 ;; esac
+    [ "$since" -ge "$started" ] && exit 0
+    put "$file" "$(date +%s) $res"
     # fail -> ok proves a fresh login made outside this plugin: start the clock there.
-    [ "$prev" = fail ] && [ "$res" = ok ] && date +%s > "$state/sso-login-$(safe "$sess")" 2>/dev/null
+    [ "$prev" = fail ] && [ "$res" = ok ] && put "$stamp" "$(date +%s)"
     ;;
   login)
     sess="${2:-}"; [ -n "$sess" ] || exit 0
     if aws sso login --sso-session "$sess" >/dev/null 2>&1 </dev/null; then
-      date +%s > "$state/sso-login-$(safe "$sess")" 2>/dev/null
-      printf '%s ok\n' "$(date +%s)" > "$state/sso-check-$(safe "$sess")" 2>/dev/null
+      put "$state/sso-login-$(safe "$sess")" "$(date +%s)"
+      put "$state/sso-check-$(safe "$sess")" "$(date +%s) ok"
     fi
     ;;
 esac
