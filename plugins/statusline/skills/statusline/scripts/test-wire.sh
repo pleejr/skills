@@ -6,6 +6,8 @@
 #
 #   ./test-wire.sh
 set -uo pipefail
+# Hermetic: a launcher's opt-in must never reach real AWS or real state from here.
+unset STATUSLINE_AWS_SSO_SESSION STATUSLINE_AWS_SSO_PROFILE STATUSLINE_AWS_SSO_HOURS STATUSLINE_STATE_DIR
 here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/statusline-tests.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
@@ -30,78 +32,77 @@ has 'ctx' "$out" && bad "absent fields draw no segment" "$out" || ok "absent fie
 [ -n "$out" ] && ok "still renders without them" || bad "still renders without them"
 
 echo "aws sso"
-sso="$tmp/sso"; st="$tmp/sso-state"; bin="$tmp/bin"; calls="$tmp/aws-calls"
-mkdir -p "$sso" "$st" "$bin"; key=edce4a3ad8cff89e4abe65785085c027e3d56f62  # sha1("tsess"), pinned
-# A stand-in aws: records each call; AWS_STUB_STS picks the sts outcome.
+st="$tmp/sso-state"; bin="$tmp/bin"; calls="$tmp/aws-calls"; mkdir -p "$st" "$bin"
+# A stand-in aws: records each call; AWS_STUB_STS picks the sts outcome, with the
+# CLI's real messages (an offline refresh names the ".../token" endpoint).
 cat > "$bin/aws" <<'STUB'
 #!/usr/bin/env bash
 echo "$*" >> "$AWS_CALLS"
 case "$1 ${AWS_STUB_STS:-ok}" in
   "sts ok") exit 0 ;;
   "sts expired") echo "Error when retrieving token from sso: Token has expired and refresh failed" >&2; exit 255 ;;
-  "sts net") echo "Could not connect to the endpoint URL" >&2; exit 255 ;;
+  "sts net") echo 'Could not connect to the endpoint URL: "https://oidc.us-east-1.amazonaws.com/token"' >&2; exit 255 ;;
   sso*) exit 0 ;;
 esac
 STUB
 chmod +x "$bin/aws"
-iso() { date -u -r "$1" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d "@$1" +%Y-%m-%dT%H:%M:%SZ; }
 now() { date +%s; }
 AMB=$'\033[33m'; RD=$'\033[31m'; DM=$'\033[2m'
 render() {
-  printf '%s' "$bare_payload" | env -u NO_COLOR PATH="$bin:$PATH" AWS_CALLS="$calls" \
-    STATUSLINE_AWS_SSO_SESSION=tsess STATUSLINE_AWS_SSO_CACHE="$sso" STATUSLINE_STATE_DIR="$st" "$@" "$here/statusline.sh"
+  printf '%s' "$bare_payload" | env -u NO_COLOR PATH="$bin:$PATH" AWS_CALLS="$calls" STATUSLINE_STATE_DIR="$st" \
+    STATUSLINE_AWS_SSO_SESSION=tsess STATUSLINE_AWS_SSO_PROFILE=tprof "$@" "$here/statusline.sh"
 }
-waitfor() { for _ in 1 2 3 4 5 6 7 8 9 10; do grep -q "$1" "$calls" 2>/dev/null && return 0; sleep 0.2; done; return 1; }
-reset_sso() { rm -f "$st"/* "$calls"; }
-cache() {  # cache <access-token offset> <registration offset> [no-refresh]
-  local rt='"refreshToken":"r",'; [ "${3:-}" = no-refresh ] && rt=""
-  printf '{"expiresAt":"%s",%s"clientId":"c","clientSecret":"s","registrationExpiresAt":"%s"}' \
-    "$(iso $(( $(now) + $1 )))" "$rt" "$(iso $(( $(now) + $2 )))" > "$sso/$key.json"
-}
-recent_ok() { printf '%s ok\n' "$(now)" > "$st/sso-check-tsess"; }
+waitfor() { for _ in $(seq 1 25); do grep -q "$1" "$2" 2>/dev/null && return 0; sleep 0.2; done; return 1; }
+reset_sso() { rm -rf "$st"/* "$calls"; }
+stamp() { echo $(( $(now) - $1 )) > "$st/sso-login-tsess"; }
+checked() { printf '%s %s\n' "$(now)" "$1" > "$st/sso-check-tsess"; mkdir -p "$st/sso-slot-check-tsess-$(( $(now) / 300 ))"; }
 
-reset_sso; cache 3000 86400; recent_ok; echo $(( $(now) - 5 * 3600 + 90 )) > "$st/sso-login-tsess"
+reset_sso; checked ok; stamp $(( 5 * 3600 - 90 ))
 out="$(render)"; has "${DM}sso 3h01m" "$out" && ok "session clock from the login stamp, dim" || bad "session clock from the login stamp, dim" "$out"
-out="$(render STATUSLINE_AWS_SSO_HOURS=12)"; has "sso 7h01m" "$out" && ok "session length is a variable" || bad "session length is a variable" "$out"
+out="$(render STATUSLINE_AWS_SSO_HOURS=012)"; has "sso 7h01m" "$out" && ok "session length is a variable, leading zero ok" || bad "session length is a variable, leading zero ok" "$out"
+out="$(render STATUSLINE_AWS_SSO_HOURS=08 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the countdown path" || bad "no stderr on the countdown path" "$out"
 
-reset_sso; cache 3000 86400; recent_ok; echo $(( $(now) - 7 * 3600 - 1830 )) > "$st/sso-login-tsess"
-out="$(render)"; has "${AMB}sso 29m — renewing" "$out" && ok "amber in the final hour" || bad "amber in the final hour" "$out"
-waitfor "sso login --sso-session tsess" && ok "final hour starts a background login" || bad "final hour starts a background login" "$(cat "$calls" 2>/dev/null)"
-for _ in 1 2 3 4 5 6 7 8 9 10; do [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && break; sleep 0.2; done
+reset_sso; checked ok; stamp $(( 7 * 3600 + 1830 ))
+out="$(render 2>&1)"; has "${AMB}sso 29m — renewing" "$out" && ok "amber in the final hour" || bad "amber in the final hour" "$out"
+has 'line ' "$out" && bad "no stderr on the renewal path" "$out" || ok "no stderr on the renewal path"
+waitfor "sso login --sso-session tsess" "$calls" && ok "final hour starts a background login" || bad "final hour starts a background login"
+for _ in $(seq 1 25); do [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && break; sleep 0.2; done
 [ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && ok "a successful login restamps the clock" || bad "a successful login restamps the clock"
-rm -f "$calls"; echo $(( $(now) - 7 * 3600 - 1830 )) > "$st/sso-login-tsess"; render >/dev/null; sleep 0.5
-[ -f "$calls" ] && bad "background login is throttled" "$(cat "$calls")" || ok "background login is throttled"
+stamp $(( 7 * 3600 + 1830 )); render >/dev/null; render >/dev/null; sleep 1
+[ "$(grep -c 'sso login' "$calls")" = 1 ] && ok "one background login per 30-minute window" || bad "one background login per 30-minute window" "$(cat "$calls")"
 
-reset_sso; cache 3000 86400; recent_ok
+reset_sso; checked ok
 out="$(render)"; has "${DM}sso ok" "$out" && ok "no stamp yet: sso ok" || bad "no stamp yet: sso ok" "$out"
+reset_sso; checked ok; stamp $(( 9 * 3600 ))
+out="$(render)"; has "${DM}sso ok" "$out" && ok "past the assumed length, still passing: sso ok" || bad "past the assumed length: sso ok" "$out"
+[ -f "$calls" ] && bad "past the assumed length starts no login" "$(cat "$calls")" || ok "past the assumed length starts no login"
 
-reset_sso; cache 3000 86400; echo $(( $(now) - 3630 )) > "$st/sso-login-tsess"
-render STATUSLINE_AWS_SSO_PROFILE=tprof AWS_STUB_STS=expired >/dev/null
-waitfor "sts get-caller-identity --profile tprof" && ok "stale check starts a live check" || bad "stale check starts a live check"
-for _ in 1 2 3 4 5 6 7 8 9 10; do grep -q fail "$st/sso-check-tsess" 2>/dev/null && break; sleep 0.2; done
+reset_sso; stamp 3630
+render AWS_STUB_STS=expired >/dev/null; render AWS_STUB_STS=expired >/dev/null
+waitfor "sts get-caller-identity --profile tprof" "$calls" && ok "a new window starts a live check" || bad "a new window starts a live check"
+waitfor fail "$st/sso-check-tsess"; sleep 0.5
+[ "$(grep -c 'sts' "$calls")" = 1 ] && ok "one live check per 5-minute window" || bad "one live check per 5-minute window" "$(cat "$calls")"
 out="$(render)"; has "${RD}sso expired — aws sso login --sso-session tsess" "$out" && ok "a failed live check turns red" || bad "a failed live check turns red" "$out"
-rm -f "$calls"; render STATUSLINE_AWS_SSO_PROFILE=tprof >/dev/null; sleep 0.5
-[ -f "$calls" ] && bad "live check is throttled to 5 minutes" "$(cat "$calls")" || ok "live check is throttled to 5 minutes"
+out="$(render 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr on the red path" || bad "no stderr on the red path" "$out"
 
-reset_sso; cache 3000 86400; echo $(( $(now) - 3630 )) > "$st/sso-login-tsess"
-render STATUSLINE_AWS_SSO_PROFILE=tprof AWS_STUB_STS=net >/dev/null
-for _ in 1 2 3 4 5 6 7 8 9 10; do grep -q error "$st/sso-check-tsess" 2>/dev/null && break; sleep 0.2; done
-out="$(render)"; has "${DM}sso 6h59m" "$out" && ok "a network fault is not an expiry" || bad "a network fault is not an expiry" "$out"
+reset_sso; stamp 3630
+render AWS_STUB_STS=net >/dev/null; waitfor error "$st/sso-check-tsess"
+out="$(render)"; has "${DM}sso 6h59m" "$out" && ok "offline (token endpoint unreachable) is not an expiry" || bad "offline is not an expiry" "$out"
 
-reset_sso; cache -60 86400 no-refresh
-out="$(render)"; has "${RD}sso expired" "$out" && ok "no refresh token and expired: red" || bad "no refresh token and expired: red" "$out"
-reset_sso; cache -60 -60
-out="$(render)"; has "${RD}sso expired" "$out" && ok "expired registration: red" || bad "expired registration: red" "$out"
-reset_sso; printf '{"expiresAt":"%s","refreshToken":"r","clientId":"c","clientSecret":"s","registrationExpiresAt":"%s"}' \
-  "$(iso $(( $(now) - 60 )) | sed 's/Z$/.123Z/')" "$(iso $(( $(now) + 86400 )) | sed 's/Z$/.5Z/')" > "$sso/$key.json"
-out="$(render)"; has "${DM}sso ok" "$out" && ok "fractional seconds parse" || bad "fractional seconds parse" "$out"
-reset_sso; rm -f "$sso/$key.json"
-out="$(render)"; has "${RD}sso expired" "$out" && ok "no cache file: red" || bad "no cache file: red" "$out"
-reset_sso; echo 'not json' > "$sso/$key.json"
-out="$(render)"; has 'sso' "$out" && bad "unreadable cache draws nothing" "$out" || ok "unreadable cache draws nothing"
-out="$(printf '%s' "$bare_payload" | env -u STATUSLINE_AWS_SSO_SESSION NO_COLOR=1 STATUSLINE_AWS_SSO_CACHE="$sso" "$here/statusline.sh")"
+reset_sso; stamp $(( 9 * 3600 )); printf '%s fail\n' "$(( $(now) - 400 ))" > "$st/sso-check-tsess"
+render >/dev/null; waitfor ok "$st/sso-check-tsess"; sleep 0.3
+[ "$(cat "$st/sso-login-tsess")" -ge $(( $(now) - 5 )) ] && ok "fail then ok restamps: a login made elsewhere" || bad "fail then ok restamps"
+reset_sso; stamp $(( 9 * 3600 )); printf '%s ok\n' "$(( $(now) - 400 ))" > "$st/sso-check-tsess"
+render >/dev/null; sleep 1
+[ "$(cat "$st/sso-login-tsess")" -le $(( $(now) - 9 * 3600 + 5 )) ] && ok "ok then ok leaves the stamp alone" || bad "ok then ok leaves the stamp alone"
+
+reset_sso; out="$(render 2>&1 >/dev/null)"; [ -z "$out" ] && ok "no stderr with no state yet" || bad "no stderr with no state yet" "$out"
+reset_sso
+out="$(render STATUSLINE_AWS_SSO_PROFILE= )"; has 'sso' "$out" && bad "no profile: no segment" "$out" || ok "no profile: no segment"
+[ -f "$calls" ] && bad "no profile: nothing spawned" || ok "no profile: nothing spawned"
+out="$(printf '%s' "$bare_payload" | NO_COLOR=1 STATUSLINE_STATE_DIR="$st" "$here/statusline.sh")"
 has 'sso' "$out" && bad "no segment unless opted in" "$out" || ok "no segment unless opted in"
-out="$(render 2>&1 >/dev/null)"; [ -z "$out" ] && ok "nothing on stderr" || bad "nothing on stderr" "$out"
+reset_sso
 
 echo "idle stamp"
 idle="${TMPDIR:-/tmp}/.claude-idle-start-T3"; frame="${TMPDIR:-/tmp}/.claude-statusline-frame-T3"

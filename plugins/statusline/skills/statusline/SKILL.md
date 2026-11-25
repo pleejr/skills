@@ -1,8 +1,8 @@
 ---
 name: statusline
-description: This skill should be used to install, change, diagnose or remove the Claude Code status line this plugin ships — the bar under the prompt showing model, directory, context-window percentage in colored bands, the 5-hour and 7-day subscription windows, a spinner while shell work is in flight, and how long the session has been waiting on you. Covers the wiring that enabling the plugin cannot do (Claude Code allows one statusLine and no plugin may provide it), what each segment means, why a segment is missing rather than broken, and how to hand the statusLine back to a script that was there before. Triggers "install the status line", "wire up the statusline plugin", "my status line is blank", "why is there no ctx percentage", "what does the spinner in the status line mean", "the idle timer is stuck", "turn the status line off", "put my old status line back", "point the status line at the new version". Distinct from `snapshot` (which snapshots whatever settings.json says, including this) and from Claude Code's own `/statusline` setup command, which writes a fresh script rather than wiring this one. NOT for authoring an unrelated status line from scratch.
+description: This skill should be used to install, change, diagnose or remove the Claude Code status line this plugin ships — the bar under the prompt showing model, directory, context-window percentage in colored bands, the 5-hour and 7-day subscription windows, a spinner while shell work is in flight, how long the session has been waiting on you, and an opt-in AWS SSO session clock that renews itself in the final hour. Covers the wiring that enabling the plugin cannot do (Claude Code allows one statusLine and no plugin may provide it), what each segment means, why a segment is missing rather than broken, and how to hand the statusLine back to a script that was there before. Triggers "install the status line", "wire up the statusline plugin", "my status line is blank", "why is there no ctx percentage", "what does the spinner in the status line mean", "the idle timer is stuck", "why is the sso segment red", "the sso countdown is wrong", "show my AWS SSO session in the status line", "turn the status line off", "put my old status line back", "point the status line at the new version". Distinct from `snapshot` (which snapshots whatever settings.json says, including this) and from Claude Code's own `/statusline` setup command, which writes a fresh script rather than wiring this one. NOT for authoring an unrelated status line from scratch.
 version: 1.0.0
-summary: A status line showing model, directory, context bands, the 5h/7d subscription windows, a spinner while shell work runs, and the idle timer — plus the wiring script a plugin needs because Claude Code allows only one statusLine and no plugin can provide it.
+summary: A status line showing model, directory, context bands, the 5h/7d subscription windows, a spinner while shell work runs, the idle timer, and an opt-in AWS SSO session clock — plus the wiring script a plugin needs because Claude Code allows only one statusLine and no plugin can provide it.
 ---
 
 # statusline — the bar under the prompt, and the wiring it needs
@@ -39,17 +39,18 @@ first, and `heal` exits 0 whatever it finds, so it can never block a session sta
 - **5h / 7d / spend** — subscription usage from `.rate_limits`, same bands. The host sends these
   only on a subscription (or behind a gateway reporting a spend limit) and only after the session's
   first API response.
-- **sso** — opt-in AWS SSO session clock, off unless `STATUSLINE_AWS_SSO_SESSION` names an
-  `[sso-session]` in `~/.aws/config` (a launcher's `export` reaches the status line).
-  - Counts down `STATUSLINE_AWS_SSO_HOURS` (default 8) from the last login stamp, the file
-    `~/.local/state/claude-statusline/sso-login-<session>`. `scripts/sso.sh login` writes it, and a
-    launcher that logs in should write the same file. A login made elsewhere is not stamped.
-  - With `STATUSLINE_AWS_SSO_PROFILE` set, `sso.sh check` runs `aws sts get-caller-identity`
-    detached at most every 5 minutes; an auth failure turns the segment red, a network fault does not.
-  - In the final hour it turns amber `renewing` and starts `sso.sh login` detached, at most every
-    30 minutes; you approve the browser prompt, and the stamp resets on success.
-  - Red `sso expired — aws sso login --sso-session <name>` also shows when the token cache cannot
-    refresh or is missing. With no stamp yet it shows dim `sso ok`. The render reads files only.
+- **sso** — opt-in AWS SSO session clock, off unless both `STATUSLINE_AWS_SSO_SESSION` (an
+  `[sso-session]` in `~/.aws/config`) and `STATUSLINE_AWS_SSO_PROFILE` (a profile on it) are set;
+  a launcher's `export` reaches the status line.
+  - Counts down `STATUSLINE_AWS_SSO_HOURS` (default 8) from the login stamp
+    `~/.local/state/claude-statusline/sso-login-<session>`. `scripts/sso.sh login` writes it; so
+    does the first passing check after a failed one, which is how a login made elsewhere is seen.
+  - `sso.sh check` runs `aws sts get-caller-identity` detached, once per 5-minute window. An auth
+    failure turns the segment red; a network fault does not. It is the only source of red.
+  - In the final hour it turns amber `renewing` and starts `sso.sh login` detached, once per
+    30-minute window; you approve the browser prompt, and the stamp resets on success.
+  - Dim `sso ok` when the check passes with no stamp, or past the assumed length. Nothing before
+    the first check result. The render reads two files and claims each window with `mkdir`.
 - **⠙ N running** — shell work in flight, counted from the process table: children of this
   session's `claude` process started through a shell snapshot. It clears itself when the work ends,
   with no hook to clear a marker.
