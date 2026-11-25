@@ -69,10 +69,10 @@ done
 #                  only source of red, since the token cache cannot tell
 #   final hour     amber "login soon"; no login yet, because a login while the
 #                  session lives reuses it and does not extend it
-#   renewal        once the live check fails, sso.sh login runs detached once per
-#                  30-minute window and opens the browser for you to approve
+#   renewal        the check that first sees the session fail runs sso.sh login
+#                  once, which opens the browser for you to approve
 # The render never waits on the network: it reads two small files and, at most
-# once per window, claims a slot with mkdir and starts a helper.
+# once per 5-minute window, claims a slot with mkdir and starts the check.
 sso_frag=""
 if [ -n "${STATUSLINE_AWS_SSO_SESSION:-}" ] && [ -n "${STATUSLINE_AWS_SSO_PROFILE:-}" ]; then
   here="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
@@ -81,7 +81,7 @@ if [ -n "${STATUSLINE_AWS_SSO_SESSION:-}" ] && [ -n "${STATUSLINE_AWS_SSO_PROFIL
   sso_state="${STATUSLINE_STATE_DIR:-${XDG_STATE_HOME:-${HOME:-}/.local/state}/claude-statusline}"
   sso_hours="${STATUSLINE_AWS_SSO_HOURS:-8}"
   case "$sso_hours" in ''|*[!0-9]*) sso_hours=8 ;; esac
-  sso_hours=$((10#$sso_hours))
+  sso_hours=$((10#$sso_hours)); [ "$sso_hours" -gt 0 ] || sso_hours=8
   sso_now="$(date +%s)"
   sso_bg() { nohup "$here/sso.sh" "$@" </dev/null >/dev/null 2>&1 & }
   sso_slot() { mkdir -p "$sso_state" 2>/dev/null && mkdir "$sso_state/sso-slot-$1-$sso_safe-$(( sso_now / $2 ))" 2>/dev/null; }
@@ -90,11 +90,10 @@ if [ -n "${STATUSLINE_AWS_SSO_SESSION:-}" ] && [ -n "${STATUSLINE_AWS_SSO_PROFIL
 
   read -r _ sso_ck 2>/dev/null < "$sso_state/sso-check-$sso_safe" || sso_ck=""
   sso_start="$(cat "$sso_state/sso-login-$sso_safe" 2>/dev/null)"
-  case "$sso_start" in ''|*[!0-9]*) sso_start="" ;; esac
+  case "$sso_start" in ''|*[!0-9]*) sso_start="" ;; *) sso_start=$((10#$sso_start)) ;; esac
 
   if [ "$sso_ck" = fail ]; then
-    sso_frag=" | ${RED}sso expired — renewing (aws sso login --sso-session ${sso_sess})${RESET}"
-    sso_slot login 1800 && sso_bg login "$sso_sess"
+    sso_frag=" | ${RED}sso expired — aws sso login --sso-session ${sso_sess}${RESET}"
   elif [ -n "$sso_start" ] && [ $(( sso_start + sso_hours * 3600 - sso_now )) -gt 0 ]; then
     sso_left=$(( sso_start + sso_hours * 3600 - sso_now ))
     if [ "$sso_left" -gt 3600 ]; then

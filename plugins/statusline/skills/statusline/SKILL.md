@@ -50,10 +50,12 @@ first, and `heal` exits 0 whatever it finds, so it can never block a session sta
     the segment red; a network fault does not. It is the only source of red.
   - In the final hour it turns amber `login soon` and starts nothing: a login while the session
     lives reuses it rather than extending it.
-  - Once the check fails it turns red `sso expired — renewing` and starts `sso.sh login` detached,
-    once per 30-minute window; you approve the browser prompt, and the stamp resets on success.
-  - Dim `sso ok` when the check passes with no stamp, or past the assumed length. With neither a
-    stamp nor a check result yet, nothing. The render reads two files and claims each window with `mkdir`.
+  - The check that first sees the session fail turns it red `sso expired — aws sso login
+    --sso-session <name>` and runs `sso.sh login` once; you approve the browser prompt, and the
+    stamp resets on success. A missed prompt is not retried — run the hinted command.
+  - Dim `sso ok` when the check passes with no stamp, or past the assumed length. Nothing when
+    there is no stamp in date and the check has not passed (no result yet, or a network fault).
+  - To remove it, unset the variables; state lives in `~/.local/state/claude-statusline`. The render reads two files and claims each window with `mkdir`.
 - **⠙ N running** — shell work in flight, counted from the process table: children of this
   session's `claude` process started through a shell snapshot. It clears itself when the work ends,
   with no hook to clear a marker.

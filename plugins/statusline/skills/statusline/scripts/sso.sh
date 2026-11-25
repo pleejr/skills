@@ -2,14 +2,15 @@
 #
 # sso.sh — background helpers for the status line's opt-in AWS SSO segment.
 #
-#   sso.sh check <sso-session> <profile>   live check; writes "<epoch> ok|fail|error"
+#   sso.sh check <sso-session> <profile>   live check; writes "<epoch> ok|fail|error",
+#                                          and runs `login` once when it first sees fail
 #   sso.sh login <sso-session>             aws sso login; stamps the login time on success
 #
 # statusline.sh starts these detached, so they print nothing and always exit 0.
 # State lives in $STATUSLINE_STATE_DIR (default ~/.local/state/claude-statusline):
 #   sso-login-<session>   epoch of the last login seen — the session clock
 #   sso-check-<session>   "<epoch> <ok|fail|error>" from the last live check
-#   sso-slot-*            one directory per throttle window; mkdir claims it atomically
+#   sso-slot-*            one directory per 5-minute check window; mkdir claims it atomically
 #
 # No `claude` is ever spawned here, so nothing can recurse into a session.
 set -uo pipefail
@@ -33,7 +34,7 @@ case "${1:-}" in
     # empty ~/.aws/cli/cache forces GetRoleCredentials through the SSO token, while
     # the symlinked ~/.aws/sso keeps the real token cache (refreshes land there).
     real_home="${HOME:-}"; scratch="$(mktemp -d "${TMPDIR:-/tmp}/sso-check.XXXXXX")" || exit 0
-    mkdir -p "$scratch/.aws" && ln -s "$real_home/.aws/sso" "$scratch/.aws/sso"
+    mkdir -p "$scratch/.aws" && ln -s "$real_home/.aws/sso" "$scratch/.aws/sso" || { rm -rf "$scratch"; exit 0; }
     err="$(HOME="$scratch" AWS_CONFIG_FILE="${AWS_CONFIG_FILE:-$real_home/.aws/config}" \
       aws sts get-caller-identity --profile "$profile" --output text \
       --cli-connect-timeout 10 --cli-read-timeout 20 2>&1 >/dev/null)"
@@ -41,6 +42,7 @@ case "${1:-}" in
     rm -rf "$scratch"
     if [ $rc -eq 0 ]; then res=ok
     else
+      # Mirrored in the claude-work launcher; keep them in step.
       # Transport faults first: botocore names the ".../token" endpoint in them,
       # which the auth patterns would otherwise match.
       case "$err" in
@@ -55,6 +57,9 @@ case "${1:-}" in
     put "$file" "$(date +%s) $res"
     # fail -> ok proves a fresh login made outside this plugin: start the clock there.
     [ "$prev" = fail ] && [ "$res" = ok ] && put "$stamp" "$(date +%s)"
+    # The session just ended: renew once. Only this transition starts a login, so an
+    # expiry left unattended opens one browser prompt, not one every window.
+    [ "$prev" != fail ] && [ "$res" = fail ] && exec "$0" login "$sess"
     ;;
   login)
     sess="${2:-}"; [ -n "$sess" ] || exit 0
